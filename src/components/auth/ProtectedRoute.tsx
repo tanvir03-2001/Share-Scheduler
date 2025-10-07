@@ -18,16 +18,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const router = useRouter()
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated) {
-        router.push('/auth/login')
-        return
-      }
+    // Only redirect if we're not loading and definitely not authenticated
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/login')
+      return
+    }
 
-      if (requireVerification && user && !user.isVerified) {
-        router.push('/auth/verify-otp')
-        return
-      }
+    // Check email verification only if user is authenticated
+    if (!isLoading && isAuthenticated && requireVerification && user && !user.isEmailVerified) {
+      router.push('/auth/verify-otp')
+      return
     }
   }, [isAuthenticated, isLoading, user, requireVerification, router])
 
@@ -46,7 +46,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return null
   }
 
-  if (requireVerification && user && !user.isVerified) {
+  if (requireVerification && user && !user.isEmailVerified) {
     return null
   }
 

@@ -1,32 +1,31 @@
 'use client'
 
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
-import ContentArea from '@/components/dashboard/ContentArea'
-import Sidebar from '@/components/dashboard/Sidebar'
-import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
-export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState('schedule')
-  const [selectedPage, setSelectedPage] = useState<any>(null)
+function DashboardContent() {
+  const router = useRouter()
+
+  useEffect(() => {
+    // Redirect to schedule page by default
+    router.replace('/dashboard/schedule')
+  }, [router])
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        {/* Sidebar */}
-        <Sidebar 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab}
-          selectedPageId={selectedPage?.id}
-          onPageSelect={setSelectedPage}
-        />
-        
-        {/* Main Content Area */}
-        <div className="ml-64 md:ml-64 sm:ml-56 flex flex-col min-h-screen">
-          
-          {/* Content Area */}
-          <ContentArea activeTab={activeTab} />
-        </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+        <p className="mt-2 text-gray-600">Redirecting...</p>
       </div>
+    </div>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
     </ProtectedRoute>
   )
 }

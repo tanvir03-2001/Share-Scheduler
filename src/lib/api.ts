@@ -1,7 +1,7 @@
 // API Configuration and Helper Functions
 // This file contains the API integration layer for authentication
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
 interface ApiResponse<T = any> {
     success: boolean
@@ -19,25 +19,35 @@ interface SignupRequest {
     name: string
     email: string
     password: string
+    acceptPrivacyPolicy: boolean
 }
 
 interface User {
     id: string
     name: string
     email: string
-    isVerified: boolean
-    avatar?: string
+    role: string
+    isEmailVerified: boolean
     createdAt: string
     updatedAt: string
 }
 
 interface AuthResponse {
     user: User
-    token: string
+    accessToken: string
+    refreshToken: string
 }
 
 interface OTPRequest {
     otp: string
+}
+
+interface VerifyEmailRequest {
+    token: string
+}
+
+interface ResendVerificationRequest {
+    email: string
 }
 
 interface ForgotPasswordRequest {
@@ -46,7 +56,7 @@ interface ForgotPasswordRequest {
 
 interface ResetPasswordRequest {
     token: string
-    password: string
+    newPassword: string
 }
 
 interface UpdateProfileRequest {
@@ -76,6 +86,7 @@ class ApiClient {
                 'Content-Type': 'application/json',
                 ...options.headers,
             },
+            credentials: 'include', // Include cookies in requests
             ...options,
         }
 
@@ -92,8 +103,8 @@ class ApiClient {
             }
 
             return {
-                success: true,
-                data,
+                success: data.success,
+                data: data.data,
                 message: data.message,
             }
         } catch (error) {
@@ -113,7 +124,7 @@ class ApiClient {
     }
 
     async signup(userData: SignupRequest): Promise<ApiResponse<{ message: string }>> {
-        return this.request<{ message: string }>('/auth/signup', {
+        return this.request<{ message: string }>('/auth/register', {
             method: 'POST',
             body: JSON.stringify(userData),
         })
@@ -146,12 +157,23 @@ class ApiClient {
         })
     }
 
-    async verifyToken(token: string): Promise<ApiResponse<{ user: User }>> {
-        return this.request<{ user: User }>('/auth/verify', {
+    async verifyEmail(tokenData: VerifyEmailRequest): Promise<ApiResponse<{ user: User; message: string }>> {
+        return this.request<{ user: User; message: string }>('/auth/verify-email', {
+            method: 'POST',
+            body: JSON.stringify(tokenData),
+        })
+    }
+
+    async resendVerificationEmail(emailData: ResendVerificationRequest): Promise<ApiResponse<{ message: string }>> {
+        return this.request<{ message: string }>('/auth/resend-verification', {
+            method: 'POST',
+            body: JSON.stringify(emailData),
+        })
+    }
+
+    async verifyToken(token: string): Promise<ApiResponse<User>> {
+        return this.request<User>('/auth/profile', {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
         })
     }
 
@@ -161,19 +183,19 @@ class ApiClient {
     ): Promise<ApiResponse<{ user: User }>> {
         return this.request<{ user: User }>('/auth/profile', {
             method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
             body: JSON.stringify(profileData),
         })
     }
 
-    async logout(token: string): Promise<ApiResponse<{ message: string }>> {
+    async logout(refreshToken: string): Promise<ApiResponse<{ message: string }>> {
         return this.request<{ message: string }>('/auth/logout', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+        })
+    }
+
+    async refreshToken(refreshToken: string): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> {
+        return this.request<{ accessToken: string; refreshToken: string }>('/auth/refresh-token', {
+            method: 'POST',
         })
     }
 }
@@ -183,6 +205,6 @@ export const apiClient = new ApiClient(API_BASE_URL)
 
 // Export types for use in components
 export type {
-    ApiResponse, AuthResponse, ForgotPasswordRequest, LoginRequest, OTPRequest, ResetPasswordRequest, SignupRequest, UpdateProfileRequest, User
+    ApiResponse, AuthResponse, ForgotPasswordRequest, LoginRequest, OTPRequest, ResendVerificationRequest, ResetPasswordRequest, SignupRequest, UpdateProfileRequest, User, VerifyEmailRequest
 }
 

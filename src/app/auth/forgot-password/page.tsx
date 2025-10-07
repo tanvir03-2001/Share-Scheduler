@@ -1,5 +1,10 @@
+import AuthPageWrapper from '@/components/auth/AuthPageWrapper'
 import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm'
 
 export default function ForgotPasswordPage() {
-  return <ForgotPasswordForm />
+  return (
+    <AuthPageWrapper>
+      <ForgotPasswordForm />
+    </AuthPageWrapper>
+  )
 }

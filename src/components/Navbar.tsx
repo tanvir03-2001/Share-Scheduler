@@ -1,7 +1,7 @@
 'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { BarChart3, Bell, Calendar, Facebook, LogOut, Menu, Settings, X } from 'lucide-react'
+import { BarChart3, Bell, Facebook, LogOut, Menu, Scale, Shield, X } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -12,12 +12,6 @@ export default function Navbar() {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
   }
-
-  const navItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
-    { name: 'Schedule', href: '#schedule', icon: Calendar },
-    { name: 'Settings', href: '#settings', icon: Settings },
-  ]
 
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50">
@@ -32,23 +26,35 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          {isAuthenticated && (
-            <div className="hidden md:flex items-center space-x-8">
-              {navItems.map((item) => {
-                const Icon = item.icon
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="flex items-center space-x-2 text-gray-700 hover:text-facebook-500 transition-colors duration-200"
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.name}</span>
-                  </Link>
-                )
-              })}
+          <div className="hidden md:flex items-center space-x-8">
+            {isAuthenticated && (
+              <Link
+                href="/dashboard"
+                className="flex items-center space-x-2 text-gray-700 hover:text-facebook-500 transition-colors duration-200"
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span>Dashboard</span>
+              </Link>
+            )}
+            
+            {/* Legal Links */}
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/privacy"
+                className="flex items-center space-x-1 text-gray-600 hover:text-facebook-500 transition-colors duration-200 text-sm"
+              >
+                <Shield className="w-3 h-3" />
+                <span>Privacy</span>
+              </Link>
+              <Link
+                href="/terms"
+                className="flex items-center space-x-1 text-gray-600 hover:text-facebook-500 transition-colors duration-200 text-sm"
+              >
+                <Scale className="w-3 h-3" />
+                <span>Terms</span>
+              </Link>
             </div>
-          )}
+          </div>
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
@@ -110,20 +116,36 @@ export default function Navbar() {
         {isMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
-              {isAuthenticated && navItems.map((item) => {
-                const Icon = item.icon
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="flex items-center space-x-3 text-gray-700 hover:text-facebook-500 hover:bg-gray-50 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{item.name}</span>
-                  </Link>
-                )
-              })}
+              {isAuthenticated && (
+                <Link
+                  href="/dashboard"
+                  className="flex items-center space-x-3 text-gray-700 hover:text-facebook-500 hover:bg-gray-50 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Dashboard</span>
+                </Link>
+              )}
+              
+              {/* Legal Links for Mobile */}
+              <div className="border-t border-gray-200 pt-2 mt-2">
+                <Link
+                  href="/privacy"
+                  className="flex items-center space-x-3 text-gray-600 hover:text-facebook-500 hover:bg-gray-50 px-3 py-2 rounded-md text-sm transition-colors duration-200"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>Privacy Policy</span>
+                </Link>
+                <Link
+                  href="/terms"
+                  className="flex items-center space-x-3 text-gray-600 hover:text-facebook-500 hover:bg-gray-50 px-3 py-2 rounded-md text-sm transition-colors duration-200"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Scale className="w-4 h-4" />
+                  <span>Terms of Service</span>
+                </Link>
+              </div>
               <div className="pt-4 space-y-2">
                 {isAuthenticated ? (
                   <>

@@ -24,7 +24,7 @@ export default function HowItWorks() {
 
   return (
     <section className="py-20 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-3">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             How It Works
@@ -35,7 +35,7 @@ export default function HowItWorks() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
           {steps.map((step, index) => {
             const Icon = step.icon
             return (
@@ -46,18 +46,18 @@ export default function HowItWorks() {
                 )}
                 
                 <div className="relative z-10 text-center">
-                  <div className="flex items-center justify-center w-20 h-20 bg-facebook-500 rounded-full mx-auto mb-6 relative">
-                    <Icon className="w-10 h-10 text-white" />
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-bold text-gray-900">{step.number}</span>
+                  <div className="flex items-center justify-center w-16 h-16 bg-facebook-500 rounded-full mx-auto mb-4 relative">
+                    <Icon className="w-8 h-8 text-white" />
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-bold text-gray-900">{step.number}</span>
                     </div>
                   </div>
                   
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
                     {step.title}
                   </h3>
                   
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-sm text-gray-600 leading-relaxed">
                     {step.description}
                   </p>
                 </div>
@@ -67,7 +67,7 @@ export default function HowItWorks() {
         </div>
 
         <div className="text-center mt-16">
-          <button className="btn-primary text-lg px-8 py-4">
+          <button className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md">
             Get Started Now
           </button>
         </div>

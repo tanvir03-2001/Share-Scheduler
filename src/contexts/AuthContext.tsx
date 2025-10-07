@@ -1,6 +1,7 @@
 'use client'
 
-import Cookies from 'js-cookie'
+import { apiClient } from '@/lib/api'
+import { useRouter } from 'next/navigation'
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
@@ -8,8 +9,10 @@ interface User {
   id: string
   email: string
   name: string
-  isVerified: boolean
-  avatar?: string
+  role: string
+  isEmailVerified: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 interface AuthContextType {
@@ -17,12 +20,14 @@ interface AuthContextType {
   isLoading: boolean
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<boolean>
-  signup: (name: string, email: string, password: string) => Promise<boolean>
+  signup: (name: string, email: string, password: string, acceptPrivacyPolicy: boolean) => Promise<boolean>
   logout: () => void
   verifyOTP: (otp: string) => Promise<boolean>
+  verifyEmail: (token: string) => Promise<boolean>
   forgotPassword: (email: string) => Promise<boolean>
   resetPassword: (token: string, password: string) => Promise<boolean>
   resendOTP: () => Promise<boolean>
+  resendVerificationEmail: (email: string) => Promise<boolean>
   updateProfile: (data: Partial<User>) => Promise<boolean>
 }
 
@@ -43,6 +48,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   const isAuthenticated = !!user
 
@@ -50,38 +56,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = Cookies.get('auth_token')
-        if (token) {
-          // Check if it's a mock token (for testing)
-          if (token.startsWith('mock_jwt_token_')) {
-            // Mock user data for testing
-            const mockUser = {
-              id: 'user_123',
-              name: 'Admin User',
-              email: 'admin@sharescheduler.com',
-              isVerified: true,
-              avatar: undefined
-            }
-            setUser(mockUser)
-          } else {
-            // Verify token with backend (for production)
-            const response = await fetch('/api/auth/verify', {
-              headers: {
-                'Authorization': `Bearer ${token}`
-              }
-            })
-            
-            if (response.ok) {
-              const userData = await response.json()
-              setUser(userData.user)
-            } else {
-              Cookies.remove('auth_token')
-            }
-          }
+        // Try to get user profile - this will automatically handle token refresh if needed
+        const response = await apiClient.verifyToken('')
+        
+        if (response.success && response.data) {
+          setUser(response.data)
+        } else {
+          // If verification fails, clear any stale state
+          setUser(null)
         }
       } catch (error) {
         console.error('Auth check failed:', error)
-        Cookies.remove('auth_token')
+        // On error, clear user state
+        setUser(null)
       } finally {
         setIsLoading(false)
       }
@@ -94,31 +81,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true)
       
-      // Fixed login credentials for testing
-      const fixedCredentials = {
-        email: 'admin@sharescheduler.com',
-        password: 'admin123'
-      }
+      const response = await apiClient.login({ email, password })
       
-      // Check if credentials match fixed values
-      if (email === fixedCredentials.email && password === fixedCredentials.password) {
-        // Simulate successful login
-        const mockUser = {
-          id: 'user_123',
-          name: 'Admin User',
-          email: 'admin@sharescheduler.com',
-          isVerified: true,
-          avatar: undefined
-        }
+      if (response.success && response.data) {
+        const { user } = response.data
         
-        const mockToken = 'mock_jwt_token_' + Date.now()
-        
-        Cookies.set('auth_token', mockToken, { expires: 7 })
-        setUser(mockUser)
+        // Server has already set the cookies, just set user state
+        setUser(user)
         toast.success('Login successful!')
         return true
       } else {
-        toast.error('Invalid email or password')
+        toast.error(response.error || 'Login failed')
         return false
       }
     } catch (error) {
@@ -129,24 +102,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const signup = async (name: string, email: string, password: string): Promise<boolean> => {
+  const signup = async (name: string, email: string, password: string, acceptPrivacyPolicy: boolean): Promise<boolean> => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        toast.success('Account created! Please verify your email.')
+      
+      const response = await apiClient.signup({ name, email, password, acceptPrivacyPolicy })
+      
+      if (response.success) {
+        toast.success('Account created successfully! Please check your email to verify your account.')
         return true
       } else {
-        toast.error(data.message || 'Signup failed')
+        toast.error(response.error || 'Signup failed')
         return false
       }
     } catch (error) {
@@ -157,10 +123,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const logout = () => {
-    Cookies.remove('auth_token')
-    setUser(null)
-    toast.success('Logged out successfully')
+  const logout = async () => {
+    try {
+      // Call logout endpoint - server will clear cookies
+      await apiClient.logout('')
+      
+      // Clear local state
+      setUser(null)
+      
+      // Show success message
+      toast.success('Logged out successfully')
+      
+      // Small delay to ensure state is updated before redirect
+      setTimeout(() => {
+        router.push('/')
+      }, 100)
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Even if there's an error, clear local data and redirect
+      setUser(null)
+      router.push('/')
+    }
   }
 
   const verifyOTP = async (otp: string): Promise<boolean> => {
@@ -195,21 +178,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const forgotPassword = async (email: string): Promise<boolean> => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
+      
+      const response = await apiClient.forgotPassword({ email })
+      
+      if (response.success) {
         toast.success('Password reset link sent to your email!')
         return true
       } else {
-        toast.error(data.message || 'Failed to send reset link')
+        toast.error(response.error || 'Failed to send reset link')
         return false
       }
     } catch (error) {
@@ -223,21 +199,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const resetPassword = async (token: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token, password }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
+      
+      const response = await apiClient.resetPassword({ token, newPassword: password })
+      
+      if (response.success) {
         toast.success('Password reset successfully!')
         return true
       } else {
-        toast.error(data.message || 'Password reset failed')
+        toast.error(response.error || 'Password reset failed')
         return false
       }
     } catch (error) {
@@ -275,27 +244,65 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
+  const verifyEmail = async (token: string): Promise<boolean> => {
+    try {
+      setIsLoading(true)
+      
+      const response = await apiClient.verifyEmail({ token })
+      
+      if (response.success && response.data) {
+        const { user } = response.data
+        
+        // Store user data and redirect to dashboard
+        setUser(user)
+        toast.success('Email verified successfully!')
+        router.push('/dashboard')
+        return true
+      } else {
+        toast.error(response.error || 'Email verification failed')
+        return false
+      }
+    } catch (error) {
+      toast.error('Network error. Please try again.')
+      return false
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const resendVerificationEmail = async (email: string): Promise<boolean> => {
+    try {
+      setIsLoading(true)
+      
+      const response = await apiClient.resendVerificationEmail({ email })
+      
+      if (response.success) {
+        toast.success('Verification email sent successfully!')
+        return true
+      } else {
+        toast.error(response.error || 'Failed to resend verification email')
+        return false
+      }
+    } catch (error) {
+      toast.error('Network error. Please try again.')
+      return false
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const updateProfile = async (data: Partial<User>): Promise<boolean> => {
     try {
       setIsLoading(true)
-      const token = Cookies.get('auth_token')
-      const response = await fetch('/api/auth/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      })
-
-      const responseData = await response.json()
-
-      if (response.ok) {
-        setUser(responseData.user)
+      
+      const response = await apiClient.updateProfile(data, '')
+      
+      if (response.success && response.data) {
+        setUser(response.data.user)
         toast.success('Profile updated successfully!')
         return true
       } else {
-        toast.error(responseData.message || 'Profile update failed')
+        toast.error(response.error || 'Profile update failed')
         return false
       }
     } catch (error) {
@@ -314,9 +321,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signup,
     logout,
     verifyOTP,
+    verifyEmail,
     forgotPassword,
     resetPassword,
     resendOTP,
+    resendVerificationEmail,
     updateProfile,
   }
 

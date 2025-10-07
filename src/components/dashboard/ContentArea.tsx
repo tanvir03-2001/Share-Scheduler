@@ -38,7 +38,7 @@ export default function ContentArea({ activeTab }: ContentAreaProps) {
 
   return (
     <div className="flex-1 bg-gray-50 overflow-y-auto">
-      <div className="p-6">
+      <div className="p-3">
         {renderContent()}
       </div>
     </div>
@@ -48,17 +48,17 @@ export default function ContentArea({ activeTab }: ContentAreaProps) {
 function ScheduleContent() {
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Scheduled Content</h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl font-bold text-gray-900">Scheduled Content</h1>
+        <button className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 flex items-center transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md">
           <Plus className="h-4 w-4 mr-2" />
           Schedule New Post
         </button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {[1, 2, 3, 4, 5, 6].map((item) => (
-          <div key={item} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div key={item} className="bg-white rounded-lg shadow-sm border border-gray-100 p-3">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center">
                 <Calendar className="h-4 w-4 text-blue-500 mr-2" />
@@ -102,18 +102,18 @@ function TextContent() {
 function AnalyticsContent() {
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Analytics</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <h1 className="text-xl font-bold text-gray-900 mb-4">Analytics</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { title: 'Total Posts', value: '1,234', change: '+12%' },
           { title: 'Engagement', value: '8.5%', change: '+3.2%' },
           { title: 'Reach', value: '45.2K', change: '+18%' },
           { title: 'Followers', value: '12.8K', change: '+5.1%' }
         ].map((metric, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">{metric.title}</h3>
-            <p className="text-2xl font-bold text-gray-900 mb-1">{metric.value}</p>
-            <p className="text-sm text-green-600">{metric.change} from last month</p>
+          <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-100 p-3">
+            <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">{metric.title}</h3>
+            <p className="text-xl font-bold text-gray-900 mb-1">{metric.value}</p>
+            <p className="text-xs text-green-600">{metric.change} from last month</p>
           </div>
         ))}
       </div>
@@ -124,9 +124,9 @@ function AnalyticsContent() {
 function AudienceContent() {
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Audience Insights</h1>
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <p className="text-gray-600">Audience analytics and insights will be displayed here.</p>
+      <h1 className="text-xl font-bold text-gray-900 mb-4">Audience Insights</h1>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+        <p className="text-sm text-gray-600">Audience analytics and insights will be displayed here.</p>
       </div>
     </div>
   )
@@ -135,9 +135,9 @@ function AudienceContent() {
 function HistoryContent() {
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Post History</h1>
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <p className="text-gray-600">Your post history and performance metrics will be displayed here.</p>
+      <h1 className="text-xl font-bold text-gray-900 mb-4">Post History</h1>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+        <p className="text-sm text-gray-600">Your post history and performance metrics will be displayed here.</p>
       </div>
     </div>
   )
@@ -146,9 +146,9 @@ function HistoryContent() {
 function TrendingContent() {
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Trending Content</h1>
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <p className="text-gray-600">Discover trending topics and hashtags to boost your content reach.</p>
+      <h1 className="text-xl font-bold text-gray-900 mb-4">Trending Content</h1>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+        <p className="text-sm text-gray-600">Discover trending topics and hashtags to boost your content reach.</p>
       </div>
     </div>
   )
@@ -157,9 +157,9 @@ function TrendingContent() {
 function CommentsContent() {
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Comments Management</h1>
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <p className="text-gray-600">Manage and respond to comments across all your social media platforms.</p>
+      <h1 className="text-xl font-bold text-gray-900 mb-4">Comments Management</h1>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+        <p className="text-sm text-gray-600">Manage and respond to comments across all your social media platforms.</p>
       </div>
     </div>
   )
