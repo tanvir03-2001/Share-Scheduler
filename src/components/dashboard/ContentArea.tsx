@@ -1,6 +1,8 @@
 'use client'
 
-import { Calendar, CheckCircle, Clock, Plus } from 'lucide-react'
+import ContentList from '@/components/dashboard/ContentList'
+import PostContentCreator from '@/components/dashboard/PostContentCreator'
+import { Calendar, Clock, Plus } from 'lucide-react'
 
 interface ContentAreaProps {
   activeTab: string
@@ -82,158 +84,19 @@ function ScheduleContent() {
 }
 
 function PostsContent() {
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Post Content</h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-          <Plus className="h-4 w-4 mr-2" />
-          Create New Post
-        </button>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Post Content</label>
-            <textarea 
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={4}
-              placeholder="What's on your mind?"
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Schedule Date</label>
-              <input 
-                type="datetime-local"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Platform</label>
-              <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option>Facebook</option>
-                <option>Instagram</option>
-                <option>Twitter</option>
-                <option>LinkedIn</option>
-              </select>
-            </div>
-          </div>
-          
-          <div className="flex justify-end space-x-3">
-            <button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-              Save Draft
-            </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              Schedule Post
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  return <PostContentCreator />
 }
 
 function ReelsContent() {
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Reels</h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-          <Plus className="h-4 w-4 mr-2" />
-          Create Reel
-        </button>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
-          <div key={item} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="aspect-[9/16] bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">Reel #{item}</span>
-            </div>
-            <div className="p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-900">Reel #{item}</span>
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Draft</span>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Created 2 hours ago</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+  return <ContentList type="reel" title="Reels" />
 }
 
 function StoriesContent() {
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Stories</h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-          <Plus className="h-4 w-4 mr-2" />
-          Create Story
-        </button>
-      </div>
-      
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((item) => (
-          <div key={item} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="aspect-square bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center">
-              <span className="text-white font-bold">Story #{item}</span>
-            </div>
-            <div className="p-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-900">#{item}</span>
-                <CheckCircle className="h-3 w-3 text-green-500" />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+  return <ContentList type="story" title="Stories" />
 }
 
 function TextContent() {
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Text Posts</h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-          <Plus className="h-4 w-4 mr-2" />
-          Create Text Post
-        </button>
-      </div>
-      
-      <div className="space-y-4">
-        {[1, 2, 3, 4, 5].map((item) => (
-          <div key={item} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h3 className="font-medium text-gray-900 mb-2">Text Post #{item}</h3>
-                <p className="text-gray-600 text-sm mb-3">
-                  This is a sample text post that can be scheduled across multiple platforms. 
-                  It contains engaging content that will help increase your social media presence.
-                </p>
-                <div className="flex items-center space-x-4 text-xs text-gray-500">
-                  <span>Created: Dec 14, 2024</span>
-                  <span>Platform: Facebook, Instagram</span>
-                  <span>Status: Published</span>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button className="text-blue-600 hover:text-blue-700 text-sm">Edit</button>
-                <button className="text-red-600 hover:text-red-700 text-sm">Delete</button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+  return <ContentList type="text" title="Text Posts" />
 }
 
 function AnalyticsContent() {
