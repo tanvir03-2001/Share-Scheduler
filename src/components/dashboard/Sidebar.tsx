@@ -88,13 +88,13 @@ const sidebarItems = [
 
 export default function Sidebar({ activeTab, onTabChange, selectedPageId, onPageSelect }: SidebarProps) {
   return (
-    <div className="fixed left-0 top-0 w-64 md:w-64 sm:w-56 bg-white shadow-lg border-r border-gray-200 h-screen flex flex-col z-40">
-      <div className="p-4 border-b border-gray-200">
+    <div className="fixed left-0 top-0 w-64 md:w-64 sm:w-56 bg-white shadow-lg border-r border-gray-100 h-screen flex flex-col z-40">
+      <div className="p-3 border-b border-gray-100">
         <h2 className="text-lg font-bold text-gray-900 mb-3">Content Studio</h2>
       </div>
       
       {/* Facebook Page List */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-100">
         <FacebookPageList 
           onPageSelect={onPageSelect || (() => {})} 
           selectedPageId={selectedPageId}
@@ -102,7 +102,7 @@ export default function Sidebar({ activeTab, onTabChange, selectedPageId, onPage
         />
       </div>
       
-      <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto p-3 scrollbar-thin">
         {/* Page Switch Section */}
         <div className="mb-4">
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Switch Pages</h3>
@@ -122,7 +122,7 @@ export default function Sidebar({ activeTab, onTabChange, selectedPageId, onPage
                     }`}
                   >
                     <Icon 
-                      className={`h-5 w-5 mr-3 ${
+                      className={`h-4 w-4 mr-3 ${
                         isActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600'
                       }`} 
                     />
@@ -135,12 +135,12 @@ export default function Sidebar({ activeTab, onTabChange, selectedPageId, onPage
         </div>
       </div>
       
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-3 border-t border-gray-100">
         <Tooltip content="Application settings" position="right">
           <button 
             className="w-full flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
           >
-            <Settings className="h-5 w-5 mr-3 text-gray-400" />
+            <Settings className="h-4 w-4 mr-3 text-gray-400" />
             <span className="font-medium text-sm">Settings</span>
           </button>
         </Tooltip>

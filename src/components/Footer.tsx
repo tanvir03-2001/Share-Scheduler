@@ -37,30 +37,30 @@ export default function Footer() {
 
   return (
     <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-8">
+      <div className="max-w-7xl mx-auto px-3 py-16">
+        <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-6">
           {/* Company Info */}
           <div className="lg:col-span-1">
             <div className="flex items-center space-x-2 mb-4">
               <div className="flex items-center justify-center w-8 h-8 bg-facebook-500 rounded-lg">
-                <Facebook className="w-5 h-5 text-white" />
+                <Facebook className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xl font-bold">AutoPost</span>
+              <span className="text-lg font-bold">AutoPost</span>
             </div>
-            <p className="text-gray-400 mb-6 leading-relaxed">
+            <p className="text-sm text-gray-400 mb-4 leading-relaxed">
               The most powerful Facebook automation platform for businesses of all sizes. 
               Schedule, manage, and optimize your social media presence.
             </p>
-            <div className="flex space-x-4">
+            <div className="flex space-x-3">
               {socialLinks.map((social) => {
                 const Icon = social.icon
                 return (
                   <a
                     key={social.name}
                     href={social.href}
-                    className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-facebook-500 transition-colors duration-200"
+                    className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-facebook-500 transition-colors duration-200"
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-4 h-4" />
                   </a>
                 )
               })}
@@ -69,13 +69,13 @@ export default function Footer() {
 
           {/* Product Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Product</h3>
-            <ul className="space-y-3">
+            <h3 className="text-sm font-semibold mb-3">Product</h3>
+            <ul className="space-y-2">
               {footerLinks.product.map((link) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors duration-200"
+                    className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
                   >
                     {link.name}
                   </a>
@@ -86,13 +86,13 @@ export default function Footer() {
 
           {/* Company Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Company</h3>
-            <ul className="space-y-3">
+            <h3 className="text-sm font-semibold mb-3">Company</h3>
+            <ul className="space-y-2">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors duration-200"
+                    className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
                   >
                     {link.name}
                   </a>
@@ -103,13 +103,13 @@ export default function Footer() {
 
           {/* Support & Legal */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Support</h3>
-            <ul className="space-y-3 mb-6">
+            <h3 className="text-sm font-semibold mb-3">Support</h3>
+            <ul className="space-y-2 mb-4">
               {footerLinks.support.map((link) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors duration-200"
+                    className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
                   >
                     {link.name}
                   </a>
@@ -117,13 +117,13 @@ export default function Footer() {
               ))}
             </ul>
             
-            <h3 className="text-lg font-semibold mb-4">Legal</h3>
-            <ul className="space-y-3">
+            <h3 className="text-sm font-semibold mb-3">Legal</h3>
+            <ul className="space-y-2">
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors duration-200"
+                    className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
                   >
                     {link.name}
                   </a>
@@ -134,26 +134,26 @@ export default function Footer() {
         </div>
 
         {/* Contact Info */}
-        <div className="border-t border-gray-800 mt-12 pt-8">
-          <div className="grid md:grid-cols-3 gap-6">
+        <div className="border-t border-gray-800 mt-12 pt-6">
+          <div className="grid md:grid-cols-3 gap-4">
             <div className="flex items-center space-x-3">
-              <Mail className="w-5 h-5 text-facebook-500" />
-              <span className="text-gray-400">support@autopost.com</span>
+              <Mail className="w-4 h-4 text-facebook-500" />
+              <span className="text-sm text-gray-400">support@autopost.com</span>
             </div>
             <div className="flex items-center space-x-3">
-              <Phone className="w-5 h-5 text-facebook-500" />
-              <span className="text-gray-400">+1 (555) 123-4567</span>
+              <Phone className="w-4 h-4 text-facebook-500" />
+              <span className="text-sm text-gray-400">+1 (555) 123-4567</span>
             </div>
             <div className="flex items-center space-x-3">
-              <MapPin className="w-5 h-5 text-facebook-500" />
-              <span className="text-gray-400">San Francisco, CA</span>
+              <MapPin className="w-4 h-4 text-facebook-500" />
+              <span className="text-sm text-gray-400">San Francisco, CA</span>
             </div>
           </div>
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-          <p className="text-gray-400">
+        <div className="border-t border-gray-800 mt-6 pt-6 text-center">
+          <p className="text-sm text-gray-400">
             © 2024 AutoPost. All rights reserved. Made with ❤️ for Facebook marketers.
           </p>
         </div>

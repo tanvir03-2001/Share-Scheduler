@@ -1,7 +1,7 @@
 'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { Camera, Check, Loader2, Mail, User } from 'lucide-react'
+import { ArrowRight, Building, Camera, Check, FileText, Globe, Loader2, Mail, User, UserCheck } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -58,23 +58,33 @@ const ProfileSetup: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">
+        {/* Header Section */}
+        <div className="text-center">
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <UserCheck className="h-8 w-8 text-white" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+            </div>
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
             Complete your profile
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="text-gray-600">
             Add some details to personalize your experience
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-4">
+        {/* Main Form */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Avatar Upload */}
             <div className="text-center">
               <div className="relative inline-block">
-                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden border-4 border-white shadow-lg">
                   {avatar ? (
                     <img
                       src={avatar}
@@ -87,7 +97,7 @@ const ProfileSetup: React.FC = () => {
                 </div>
                 <label
                   htmlFor="avatar"
-                  className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 cursor-pointer hover:bg-blue-700"
+                  className="absolute bottom-0 right-0 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full p-2 cursor-pointer hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                   <Camera className="h-4 w-4" />
                   <input
@@ -99,17 +109,17 @@ const ProfileSetup: React.FC = () => {
                   />
                 </label>
               </div>
-              <p className="mt-2 text-xs text-gray-500">Click to upload photo</p>
+              <p className="mt-3 text-sm text-gray-500">Click to upload your photo</p>
             </div>
 
             {/* Name Field */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-2">
+              <label htmlFor="name" className="block text-sm font-semibold text-gray-700">
                 Full Name
               </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200" />
                 </div>
                 <input
                   {...register('name', {
@@ -120,23 +130,26 @@ const ProfileSetup: React.FC = () => {
                     },
                   })}
                   type="text"
-                  className="appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all duration-200 bg-white/50 hover:bg-white/80"
                   placeholder="Enter your full name"
                 />
               </div>
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                <p className="text-sm text-red-500 flex items-center gap-1">
+                  <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
             {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
                 Email Address
               </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200" />
                 </div>
                 <input
                   {...register('email', {
@@ -147,94 +160,114 @@ const ProfileSetup: React.FC = () => {
                     },
                   })}
                   type="email"
-                  className="appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all duration-200 bg-white/50 hover:bg-white/80"
                   placeholder="Enter your email"
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="text-sm text-red-500 flex items-center gap-1">
+                  <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
             {/* Bio Field */}
-            <div>
-              <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-2">
+              <label htmlFor="bio" className="block text-sm font-semibold text-gray-700">
                 Bio (Optional)
               </label>
-              <div className="mt-1">
+              <div className="relative group">
+                <div className="absolute top-4 left-4 flex items-start pointer-events-none">
+                  <FileText className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200" />
+                </div>
                 <textarea
                   {...register('bio')}
                   rows={3}
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all duration-200 bg-white/50 hover:bg-white/80 resize-none"
                   placeholder="Tell us about yourself..."
                 />
               </div>
             </div>
 
             {/* Company Field */}
-            <div>
-              <label htmlFor="company" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-2">
+              <label htmlFor="company" className="block text-sm font-semibold text-gray-700">
                 Company (Optional)
               </label>
-              <div className="mt-1">
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Building className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200" />
+                </div>
                 <input
                   {...register('company')}
                   type="text"
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all duration-200 bg-white/50 hover:bg-white/80"
                   placeholder="Your company name"
                 />
               </div>
             </div>
 
             {/* Website Field */}
-            <div>
-              <label htmlFor="website" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-2">
+              <label htmlFor="website" className="block text-sm font-semibold text-gray-700">
                 Website (Optional)
               </label>
-              <div className="mt-1">
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Globe className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200" />
+                </div>
                 <input
                   {...register('website', {
                     pattern: {
-                      value: /^https?:\/\/.+/,
+                      value: /^https?:\/\/.+$/,
                       message: 'Please enter a valid URL',
                     },
                   })}
                   type="url"
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all duration-200 bg-white/50 hover:bg-white/80"
                   placeholder="https://yourwebsite.com"
                 />
               </div>
               {errors.website && (
-                <p className="mt-1 text-sm text-red-600">{errors.website.message}</p>
+                <p className="text-sm text-red-500 flex items-center gap-1">
+                  <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                  {errors.website.message}
+                </p>
               )}
             </div>
-          </div>
 
-          <div className="space-y-3">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Complete Profile
-                </>
-              )}
-            </button>
-            
-            <button
-              type="button"
-              onClick={handleSkip}
-              className="w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Skip for now
-            </button>
-          </div>
-        </form>
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:from-indigo-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 font-semibold text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Completing profile...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Complete Profile
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+              
+              <button
+                type="button"
+                onClick={handleSkip}
+                className="w-full flex items-center justify-center gap-2 py-3 px-6 border-2 border-gray-200 text-gray-700 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 font-medium text-sm"
+              >
+                Skip for now
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )
