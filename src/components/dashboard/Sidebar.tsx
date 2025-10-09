@@ -4,25 +4,25 @@ import Tooltip from '@/components/ui/Tooltip'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
 import {
-    BarChart3,
-    Bell,
-    Calendar,
-    ChevronDown,
-    ChevronLeft,
-    ChevronRight,
-    Clock,
-    Facebook,
-    FileText,
-    Image,
-    LogOut,
-    MessageSquare,
-    Plus,
-    Settings,
-    TrendingUp,
-    Type,
-    User,
-    Users,
-    Video
+  BarChart3,
+  Bell,
+  Calendar,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Facebook,
+  FileText,
+  Image,
+  LogOut,
+  MessageSquare,
+  Plus,
+  Settings,
+  TrendingUp,
+  Type,
+  User,
+  Users,
+  Video
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -140,7 +140,7 @@ const sidebarItems = [
 
 export default function Sidebar({ activeTab }: SidebarProps) {
   const { user, logout } = useAuth()
-  const { isCollapsed, toggleSidebar } = useSidebar()
+  const { isCollapsed, isMobile, isMobileMenuOpen, toggleSidebar, closeMobileMenu } = useSidebar()
   const pathname = usePathname()
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
   const [isPageDropdownOpen, setIsPageDropdownOpen] = useState(false)
@@ -197,35 +197,53 @@ export default function Sidebar({ activeTab }: SidebarProps) {
   }
 
   return (
-    <div className={`fixed left-0 top-0 bg-white shadow-lg border-r border-gray-100 h-screen flex flex-col z-40 transition-all duration-300 ${
-      isCollapsed ? 'w-16' : 'w-64 md:w-64 sm:w-56'
-    }`}>
+    <>
+      {/* Mobile Overlay */}
+      {isMobile && isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={closeMobileMenu}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={`fixed left-0 top-0 bg-white shadow-lg border-r border-gray-100 h-screen flex flex-col z-50 transition-all duration-300 ${
+        isMobile 
+          ? (isMobileMenuOpen ? 'w-64' : '-translate-x-full')
+          : (isCollapsed ? 'w-16' : 'w-64')
+      }`}>
       {/* Logo and Toggle Button */}
-      <div className="p-3 border-b border-gray-100 flex items-center justify-between">
+      <div className="p-2 md:p-3 border-b border-gray-100 flex items-center justify-between relative">
         <div className="flex items-center space-x-2 overflow-hidden">
-          <div className="flex items-center justify-center w-8 h-8 bg-facebook-500 rounded-lg flex-shrink-0">
-            <Facebook className="w-5 h-5 text-white" />
+          <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 bg-facebook-500 rounded-lg flex-shrink-0">
+            <Facebook className="w-4 h-4 md:w-5 md:h-5 text-white" />
           </div>
-          <span className={`text-lg font-bold text-gray-900 transition-all duration-300 ${
+          <span className={`text-sm md:text-lg font-bold text-gray-900 transition-all duration-300 ${
             isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'
           }`}>
             AutoPost
           </span>
         </div>
+        
+        {/* Unified Toggle Button */}
         <button
           onClick={toggleSidebar}
-          className="p-1 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
+          className={`transition-all duration-200 flex items-center justify-center z-10 ${
+            isCollapsed && !isMobile
+              ? 'absolute top-2 right-2 md:top-3 md:right-3 w-10 h-10 bg-blue-500 hover:bg-blue-600 rounded-lg shadow-md'
+              : 'p-2 rounded-lg bg-blue-500 hover:bg-blue-600 shadow-sm flex-shrink-0'
+          }`}
         >
           {isCollapsed ? (
-            <ChevronRight className="w-5 h-5 text-gray-600" />
+            <ChevronRight className="w-4 h-4 text-white" />
           ) : (
-            <ChevronLeft className="w-5 h-5 text-gray-600" />
+            <ChevronLeft className="w-4 h-4 text-white" />
           )}
         </button>
       </div>
 
       {/* Facebook Page Management Section */}
-      <div className="p-3 border-b border-gray-100">
+      <div className="p-2 md:p-3 border-b border-gray-100">
         {selectedPage ? (
           // Show page dropdown when pages are connected
           <div className="relative" ref={pageDropdownRef}>
@@ -345,13 +363,13 @@ export default function Sidebar({ activeTab }: SidebarProps) {
         )}
       </div>
       
-      <div className="flex-1 overflow-y-auto p-3 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto p-2 md:p-3 scrollbar-thin">
         {/* Navigation Items */}
         <div className="mb-4">
           <h3 className={`text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 transition-all duration-300 overflow-hidden ${
             isCollapsed ? 'opacity-0 h-0' : 'opacity-100 h-auto'
           }`}>
-            Switch Pages
+            Menus
           </h3>
           <nav className="space-y-1">
             {sidebarItems.map((item) => {
@@ -362,6 +380,7 @@ export default function Sidebar({ activeTab }: SidebarProps) {
                 <Tooltip key={item.id} content={isCollapsed ? item.description : ''} position="right">
                   <Link
                     href={item.href}
+                    onClick={() => isMobile && closeMobileMenu()}
                     className={`w-full flex items-center p-2 rounded-lg text-left transition-all duration-200 group relative ${
                       isActive
                         ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500'
@@ -373,7 +392,7 @@ export default function Sidebar({ activeTab }: SidebarProps) {
                         isActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600'
                       }`} 
                     />
-                    <span className={`font-medium text-sm transition-all duration-300 overflow-hidden ${
+                    <span className={`font-medium text-xs md:text-sm transition-all duration-300 overflow-hidden ${
                       isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'
                     }`}>
                       {item.label}
@@ -387,7 +406,7 @@ export default function Sidebar({ activeTab }: SidebarProps) {
       </div>
       
       {/* Bottom Section - User Info with Dropdown */}
-      <div className="p-3 border-t border-gray-100">
+      <div className="p-2 md:p-3 border-t border-gray-100">
         <div className="relative" ref={dropdownRef}>
           {/* User Info Button */}
           <button
@@ -406,7 +425,7 @@ export default function Sidebar({ activeTab }: SidebarProps) {
               </div>
               {!isCollapsed && (
                 <div className="flex-1 text-left">
-                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                  <p className="text-xs md:text-sm font-medium text-gray-900">{user?.name}</p>
                   <p className="text-xs text-gray-500">{user?.email}</p>
                 </div>
               )}
@@ -458,6 +477,7 @@ export default function Sidebar({ activeTab }: SidebarProps) {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

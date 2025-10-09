@@ -1,5 +1,6 @@
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import ContentArea from '@/components/dashboard/ContentArea'
+import MobileHeader from '@/components/dashboard/MobileHeader'
 import Sidebar from '@/components/dashboard/Sidebar'
 import { SidebarProvider } from '@/contexts/SidebarContext'
 import { Metadata } from 'next'
@@ -19,9 +20,8 @@ function StoriesContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar />
-      <div className="ml-64 md:ml-64 sm:ml-56">
-        <ContentArea activeTab="stories" />
-      </div>
+      <MobileHeader />
+      <ContentArea activeTab="stories" />
     </div>
   )
 }

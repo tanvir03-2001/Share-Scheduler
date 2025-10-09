@@ -2,20 +2,20 @@
 
 import UploadModal from '@/components/ui/UploadModal'
 import {
-  ArrowLeft,
-  ArrowRight,
-  Camera,
-  Check,
-  Globe,
-  Hash,
-  Image,
-  Play,
-  Plus,
-  Type,
-  Upload,
-  Users,
-  Video,
-  X
+    ArrowLeft,
+    ArrowRight,
+    Camera,
+    Check,
+    Globe,
+    Hash,
+    Image,
+    Play,
+    Plus,
+    Type,
+    Upload,
+    Users,
+    Video,
+    X
 } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
@@ -287,11 +287,11 @@ export default function PostContentCreator() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-3">
+    <div className="max-w-4xl mx-auto px-2 md:px-3 py-4 overflow-x-hidden">
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-xl font-bold text-gray-900 mb-1">Create New Post</h1>
-        <p className="text-gray-500 text-sm">Step {currentStep} of {totalSteps}: {getStepTitle()}</p>
+        <h1 className="text-lg md:text-xl font-bold text-gray-900 mb-1">Create New Post</h1>
+        <p className="text-gray-500 text-xs md:text-sm">Step {currentStep} of {totalSteps}: {getStepTitle()}</p>
       </div>
 
       {/* Compact Progress Bar */}
@@ -299,7 +299,7 @@ export default function PostContentCreator() {
         <div className="flex items-center justify-between mb-2">
           {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
             <div key={step} className="flex items-center">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${
+              <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${
                 step <= currentStep 
                   ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm' 
                   : 'bg-gray-100 text-gray-400'
@@ -307,7 +307,7 @@ export default function PostContentCreator() {
                 {step < currentStep ? <Check className="w-3 h-3" /> : step}
               </div>
               {step < totalSteps && (
-                <div className={`w-12 h-0.5 mx-2 rounded-full transition-all duration-300 ${
+                <div className={`w-8 md:w-12 h-0.5 mx-1 md:mx-2 rounded-full transition-all duration-300 ${
                   step < currentStep ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gray-200'
                 }`} />
               )}
@@ -315,24 +315,28 @@ export default function PostContentCreator() {
           ))}
         </div>
         <div className="flex justify-between text-xs text-gray-600 font-medium">
-          <span>Post Type</span>
-          <span>Publish Mode</span>
-          <span>Platforms</span>
-          <span>Content</span>
+          <span className="hidden sm:inline">Post Type</span>
+          <span className="sm:hidden">Type</span>
+          <span className="hidden sm:inline">Publish Mode</span>
+          <span className="sm:hidden">Mode</span>
+          <span className="hidden sm:inline">Platforms</span>
+          <span className="sm:hidden">Platforms</span>
+          <span className="hidden sm:inline">Content</span>
+          <span className="sm:hidden">Content</span>
         </div>
       </div>
 
       {/* Compact Overview Panel */}
-      <div className="mb-4 bg-white rounded-lg shadow-sm border border-gray-100 p-3">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-          <div className="w-5 h-5 bg-gradient-to-r from-blue-500 to-blue-600 rounded flex items-center justify-center mr-2">
-            <Check className="w-3 h-3 text-white" />
+      <div className="mb-4 bg-white rounded-lg shadow-sm border border-gray-100 p-2 md:p-3">
+        <h3 className="text-xs md:text-sm font-semibold text-gray-900 mb-3 flex items-center">
+          <div className="w-4 h-4 md:w-5 md:h-5 bg-gradient-to-r from-blue-500 to-blue-600 rounded flex items-center justify-center mr-2">
+            <Check className="w-2 h-2 md:w-3 md:h-3 text-white" />
           </div>
           Post Summary
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
           {/* Post Type */}
-          <div className="bg-gray-50 rounded-lg p-3">
+          <div className="bg-gray-50 rounded-lg p-2 md:p-3">
             <h4 className="font-medium text-gray-900 mb-2 text-xs uppercase tracking-wide">Post Type</h4>
             {selectedPostType ? (
               <div className="flex items-center">
@@ -358,7 +362,7 @@ export default function PostContentCreator() {
           </div>
 
           {/* Publish Mode */}
-          <div className="bg-gray-50 rounded-lg p-3">
+          <div className="bg-gray-50 rounded-lg p-2 md:p-3">
             <h4 className="font-medium text-gray-900 mb-2 text-xs uppercase tracking-wide">Publish Mode</h4>
             {publishMode ? (
               <div className="flex items-center">
@@ -375,7 +379,7 @@ export default function PostContentCreator() {
           </div>
 
           {/* Platforms */}
-          <div className="bg-gray-50 rounded-lg p-3">
+          <div className="bg-gray-50 rounded-lg p-2 md:p-3">
             <h4 className="font-medium text-gray-900 mb-2 text-xs uppercase tracking-wide">Platforms</h4>
             {selectedPlatforms.length > 0 ? (
               <div className="space-y-1">
@@ -399,7 +403,7 @@ export default function PostContentCreator() {
           </div>
 
           {/* Content Status */}
-          <div className="bg-gray-50 rounded-lg p-3">
+          <div className="bg-gray-50 rounded-lg p-2 md:p-3">
             <h4 className="font-medium text-gray-900 mb-2 text-xs uppercase tracking-wide">Content</h4>
             <div className="space-y-1">
               <div className="flex items-center">
@@ -424,11 +428,11 @@ export default function PostContentCreator() {
       </div>
 
       {/* Compact Step Content */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-3 md:p-4">
         {currentStep === 1 && (
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Choose Post Type</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <h2 className="text-base md:text-lg font-bold text-gray-900 mb-4">Choose Post Type</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {postTypes.map((type) => {
                 const Icon = type.icon
                 const isSelected = selectedPostType === type.id
@@ -437,16 +441,16 @@ export default function PostContentCreator() {
                   <button
                     key={type.id}
                     onClick={() => setSelectedPostType(type.id)}
-                    className={`p-3 rounded-lg border-2 transition-all duration-200 ${
+                    className={`p-2 md:p-3 rounded-lg border-2 transition-all duration-200 ${
                       isSelected
                         ? 'border-blue-500 bg-blue-50 shadow-sm'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className={`w-12 h-12 ${type.color} rounded-lg flex items-center justify-center mx-auto mb-2`}>
-                      <Icon className="w-6 h-6 text-white" />
+                    <div className={`w-10 h-10 md:w-12 md:h-12 ${type.color} rounded-lg flex items-center justify-center mx-auto mb-2`}>
+                      <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                     </div>
-                    <h4 className="font-semibold text-gray-900 mb-1 text-sm">{type.name}</h4>
+                    <h4 className="font-semibold text-gray-900 mb-1 text-xs md:text-sm">{type.name}</h4>
                     <p className="text-xs text-gray-600">{type.description}</p>
                   </button>
                 )
@@ -457,7 +461,7 @@ export default function PostContentCreator() {
 
         {currentStep === 2 && (
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Choose Publish Mode</h2>
+            <h2 className="text-base md:text-lg font-bold text-gray-900 mb-4">Choose Publish Mode</h2>
             <div className="space-y-3">
               <button
                 onClick={() => handlePublishModeChange('now')}
@@ -576,8 +580,8 @@ export default function PostContentCreator() {
 
         {currentStep === 3 && (
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Select Platforms</h2>
-            <div className="grid grid-cols-2 gap-3">
+            <h2 className="text-base md:text-lg font-bold text-gray-900 mb-4">Select Platforms</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {platforms.map((platform) => {
                 const Icon = platform.icon
                 const isSelected = selectedPlatforms.includes(platform.id)
@@ -616,7 +620,7 @@ export default function PostContentCreator() {
 
         {currentStep === 4 && (
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Create Content</h2>
+            <h2 className="text-base md:text-lg font-bold text-gray-900 mb-4">Create Content</h2>
 
           {/* Content Input */}
             <div className="mb-4">
@@ -692,7 +696,7 @@ export default function PostContentCreator() {
               {uploadedFiles.length > 0 && (
                   <div className="mt-4">
                     <h4 className="font-bold text-gray-900 mb-3 text-sm">Uploaded Files</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     {uploadedFiles.map((file) => (
                       <div key={file.id} className="relative group">
                           <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
@@ -728,18 +732,18 @@ export default function PostContentCreator() {
           </div>
 
       {/* Compact Navigation Buttons */}
-      <div className="flex justify-between items-center mt-6">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-6">
         <button
           onClick={prevStep}
           disabled={currentStep === 1}
-          className="flex items-center px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm"
+          className="flex items-center px-3 md:px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-xs md:text-sm w-full sm:w-auto"
         >
-          <ArrowLeft className="w-4 h-4 mr-1" />
+          <ArrowLeft className="w-3 h-3 md:w-4 md:h-4 mr-1" />
           Previous
         </button>
 
-        <div className="flex space-x-2">
-          <button className="px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-medium text-sm">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+          <button className="px-3 md:px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-medium text-xs md:text-sm">
             Save Draft
           </button>
           
@@ -747,26 +751,28 @@ export default function PostContentCreator() {
             <button
               onClick={nextStep}
               disabled={!canProceedToNext()}
-              className="flex items-center px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md"
+              className="flex items-center justify-center px-4 md:px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 font-medium text-xs md:text-sm shadow-sm hover:shadow-md"
             >
               Next
-              <ArrowRight className="w-4 h-4 ml-1" />
+              <ArrowRight className="w-3 h-3 md:w-4 md:h-4 ml-1" />
             </button>
           ) : (
             <button
               onClick={handleSubmit}
               disabled={isUploading}
-              className="flex items-center px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md"
+              className="flex items-center justify-center px-4 md:px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 transition-all duration-200 font-medium text-xs md:text-sm shadow-sm hover:shadow-md"
             >
               {isUploading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
-                  {publishMode === 'now' ? 'Publishing...' : 'Scheduling...'}
+                  <div className="animate-spin rounded-full h-3 w-3 md:h-4 md:w-4 border-b-2 border-white mr-1"></div>
+                  <span className="hidden sm:inline">{publishMode === 'now' ? 'Publishing...' : 'Scheduling...'}</span>
+                  <span className="sm:hidden">{publishMode === 'now' ? 'Publishing...' : 'Scheduling...'}</span>
                 </>
               ) : (
                 <>
-                  <Upload className="w-4 h-4 mr-1" />
-                  {publishMode === 'now' ? 'Publish Now' : 'Schedule Posts'}
+                  <Upload className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                  <span className="hidden sm:inline">{publishMode === 'now' ? 'Publish Now' : 'Schedule Posts'}</span>
+                  <span className="sm:hidden">{publishMode === 'now' ? 'Publish' : 'Schedule'}</span>
                 </>
               )}
             </button>
