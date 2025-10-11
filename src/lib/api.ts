@@ -68,6 +68,22 @@ interface UpdateProfileRequest {
     avatar?: string
 }
 
+interface FacebookPage {
+    id: string
+    name: string
+    category: string
+    accessToken: string
+    picture?: string
+    followersCount?: number
+    tasks?: string[]
+    connectedAt: string
+}
+
+interface FacebookPagesResponse {
+    pages: FacebookPage[]
+    totalPages: number
+}
+
 class ApiClient {
     private baseURL: string
 
@@ -198,6 +214,37 @@ class ApiClient {
             method: 'POST',
         })
     }
+
+    // Facebook API methods
+    async generateFacebookAuthUrl(): Promise<ApiResponse<{ authUrl: string }>> {
+        return this.request<{ authUrl: string }>('/facebook/auth-url', {
+            method: 'GET',
+        })
+    }
+
+    async getConnectedFacebookPages(): Promise<ApiResponse<FacebookPagesResponse>> {
+        return this.request<FacebookPagesResponse>('/facebook/pages', {
+            method: 'GET',
+        })
+    }
+
+    async refreshFacebookPages(): Promise<ApiResponse<FacebookPagesResponse>> {
+        return this.request<FacebookPagesResponse>('/facebook/pages/refresh', {
+            method: 'POST',
+        })
+    }
+
+    async disconnectFacebookPages(): Promise<ApiResponse<{ message: string }>> {
+        return this.request<{ message: string }>('/facebook/pages/disconnect', {
+            method: 'DELETE',
+        })
+    }
+
+    async getPageAccessToken(pageId: string): Promise<ApiResponse<{ pageId: string; accessToken: string; pageName: string }>> {
+        return this.request<{ pageId: string; accessToken: string; pageName: string }>(`/facebook/pages/${pageId}/access-token`, {
+            method: 'GET',
+        })
+    }
 }
 
 // Create and export the API client instance
@@ -205,6 +252,6 @@ export const apiClient = new ApiClient(API_BASE_URL)
 
 // Export types for use in components
 export type {
-    ApiResponse, AuthResponse, ForgotPasswordRequest, LoginRequest, OTPRequest, ResendVerificationRequest, ResetPasswordRequest, SignupRequest, UpdateProfileRequest, User, VerifyEmailRequest
+    ApiResponse, AuthResponse, FacebookPage, FacebookPagesResponse, ForgotPasswordRequest, LoginRequest, OTPRequest, ResendVerificationRequest, ResetPasswordRequest, SignupRequest, UpdateProfileRequest, User, VerifyEmailRequest
 }
 

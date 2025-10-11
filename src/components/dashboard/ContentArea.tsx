@@ -1,6 +1,7 @@
 'use client'
 
 import ContentList from '@/components/dashboard/ContentList'
+import FacebookPageConnection from '@/components/dashboard/FacebookPageConnection'
 import PostContentCreator from '@/components/dashboard/PostContentCreator'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { Calendar, Clock, Plus } from 'lucide-react'
@@ -56,38 +57,44 @@ export default function ContentArea({ activeTab }: ContentAreaProps) {
 
 function ScheduleContent() {
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-        <h1 className="text-lg md:text-xl font-bold text-gray-900">Scheduled Content</h1>
-        <button className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 md:px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 flex items-center transition-all duration-200 font-medium text-xs md:text-sm shadow-sm hover:shadow-md">
-          <Plus className="h-3 w-3 md:h-4 md:w-4 mr-2" />
-          Schedule New Post
-        </button>
-      </div>
+    <div className="space-y-6">
+      {/* Facebook Page Connection Section */}
+      <FacebookPageConnection />
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {[1, 2, 3, 4, 5, 6].map((item) => (
-          <div key={item} className="bg-white rounded-lg shadow-sm border border-gray-100 p-2 md:p-3">
-            <div className="flex items-center justify-between mb-2 md:mb-3">
-              <div className="flex items-center">
-                <Calendar className="h-3 w-3 md:h-4 md:w-4 text-blue-500 mr-2" />
-                <span className="text-xs md:text-sm font-medium text-gray-900">Post #{item}</span>
+      {/* Scheduled Content Section */}
+      <div>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+          <h1 className="text-lg md:text-xl font-bold text-gray-900">Scheduled Content</h1>
+          <button className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 md:px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 flex items-center transition-all duration-200 font-medium text-xs md:text-sm shadow-sm hover:shadow-md">
+            <Plus className="h-3 w-3 md:h-4 md:w-4 mr-2" />
+            Schedule New Post
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {[1, 2, 3, 4, 5, 6].map((item) => (
+            <div key={item} className="bg-white rounded-lg shadow-sm border border-gray-100 p-2 md:p-3">
+              <div className="flex items-center justify-between mb-2 md:mb-3">
+                <div className="flex items-center">
+                  <Calendar className="h-3 w-3 md:h-4 md:w-4 text-blue-500 mr-2" />
+                  <span className="text-xs md:text-sm font-medium text-gray-900">Post #{item}</span>
+                </div>
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Scheduled</span>
               </div>
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Scheduled</span>
-            </div>
-            <p className="text-gray-600 text-xs md:text-sm mb-2 md:mb-3">
-              This is a sample scheduled post content that will be published automatically...
-            </p>
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <div className="flex items-center">
-                <Clock className="h-3 w-3 mr-1" />
-                <span className="hidden sm:inline">Dec 15, 2024 at 2:00 PM</span>
-                <span className="sm:hidden">Dec 15, 2:00 PM</span>
+              <p className="text-gray-600 text-xs md:text-sm mb-2 md:mb-3">
+                This is a sample scheduled post content that will be published automatically...
+              </p>
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center">
+                  <Clock className="h-3 w-3 mr-1" />
+                  <span className="hidden sm:inline">Dec 15, 2024 at 2:00 PM</span>
+                  <span className="sm:hidden">Dec 15, 2:00 PM</span>
+                </div>
+                <button className="text-blue-600 hover:text-blue-700 text-xs">Edit</button>
               </div>
-              <button className="text-blue-600 hover:text-blue-700 text-xs">Edit</button>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   )
