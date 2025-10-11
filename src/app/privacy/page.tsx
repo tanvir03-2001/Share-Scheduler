@@ -1,4 +1,4 @@
-import { CheckCircle, Database, Eye, FileText, Globe, Lock, Shield, Users } from 'lucide-react'
+import { CheckCircle, Database, Eye, FileText, Globe, Lock, Shield, Trash2, Users } from 'lucide-react'
 import Link from 'next/link'
 
 export default function PrivacyPolicy() {
@@ -288,6 +288,28 @@ export default function PrivacyPolicy() {
                 <Users className="w-4 h-4 text-green-600" />
               </div>
               <h2 className="text-xl font-semibold text-gray-900">Your Rights</h2>
+            </div>
+            
+            {/* Data Deletion CTA */}
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-red-900 mb-2">Request Data Deletion</h3>
+                  <p className="text-red-800 text-sm mb-3">
+                    You have the right to request the permanent deletion of all your personal data. 
+                    This action is irreversible and will close your account permanently.
+                  </p>
+                  <Link
+                    href="/data-deletion"
+                    className="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors duration-200"
+                  >
+                    Request Data Deletion
+                  </Link>
+                </div>
+                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+              </div>
             </div>
             
             <div className="grid md:grid-cols-2 gap-4">

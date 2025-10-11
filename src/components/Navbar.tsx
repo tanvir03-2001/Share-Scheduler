@@ -1,7 +1,7 @@
 'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { BarChart3, Bell, Facebook, LogOut, Menu, Scale, Shield, X } from 'lucide-react'
+import { BarChart3, Bell, Facebook, LogOut, Menu, Scale, Shield, Trash2, X } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -52,6 +52,13 @@ export default function Navbar() {
               >
                 <Scale className="w-3 h-3" />
                 <span>Terms</span>
+              </Link>
+              <Link
+                href="/data-deletion"
+                className="flex items-center space-x-1 text-gray-600 hover:text-red-500 transition-colors duration-200 text-sm"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>Delete Data</span>
               </Link>
             </div>
           </div>
@@ -144,6 +151,14 @@ export default function Navbar() {
                 >
                   <Scale className="w-4 h-4" />
                   <span>Terms of Service</span>
+                </Link>
+                <Link
+                  href="/data-deletion"
+                  className="flex items-center space-x-3 text-gray-600 hover:text-red-500 hover:bg-gray-50 px-3 py-2 rounded-md text-sm transition-colors duration-200"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete Data</span>
                 </Link>
               </div>
               <div className="pt-4 space-y-2">
