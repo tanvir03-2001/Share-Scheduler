@@ -1,2 +1,4 @@
 # Frontend Environment Variables
+# API URL - will automatically use the same host as frontend for cookie compatibility
+# Only set this if you need to override the automatic detection
 NEXT_PUBLIC_API_URL=http://localhost:5000/api

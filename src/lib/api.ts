@@ -1,7 +1,29 @@
 // API Configuration and Helper Functions
 // This file contains the API integration layer for authentication
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+// Configure API base URL for separate frontend/backend hosting
+const getApiBaseUrl = () => {
+    if (typeof window !== 'undefined') {
+        // In browser, check if we're in production
+        const host = window.location.hostname;
+        const protocol = window.location.protocol;
+
+        // Check if we're in production (Vercel deployment)
+        if (host.includes('vercel.app') || host.includes('netlify.app') || process.env.NODE_ENV === 'production') {
+            // In production, use the separate backend URL
+            // Replace this with your actual backend Vercel URL
+            return process.env.NEXT_PUBLIC_API_URL || 'https://your-backend-app.vercel.app/api';
+        } else {
+            // In development, use HTTP with port 5000
+            const port = '5000';
+            return `http://${host}:${port}/api`;
+        }
+    }
+    // Fallback for server-side rendering
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 interface ApiResponse<T = any> {
     success: boolean
@@ -276,6 +298,45 @@ class ApiClient {
             method: 'GET',
         })
     }
+
+    async getFacebookAppInfo(): Promise<ApiResponse<{ appId: string; redirectUri: string; scopes: string[] }>> {
+        return this.request<{ appId: string; redirectUri: string; scopes: string[] }>('/facebook/app-info', {
+            method: 'GET',
+        })
+    }
+
+    // Instagram/Reels API methods
+    async getInstagramAccounts(pageId: string): Promise<ApiResponse<{ pageId: string; pageName: string; instagramAccounts: any[] }>> {
+        return this.request<{ pageId: string; pageName: string; instagramAccounts: any[] }>(`/facebook/pages/${pageId}/instagram-accounts`, {
+            method: 'GET',
+        })
+    }
+
+    async uploadInstagramReel(data: { instagramAccountId: string; videoUrl: string; caption?: string }): Promise<ApiResponse<{ mediaId: string; instagramAccountId: string; caption?: string }>> {
+        return this.request<{ mediaId: string; instagramAccountId: string; caption?: string }>('/facebook/instagram/reel/upload', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        })
+    }
+
+    async uploadInstagramPhoto(data: { instagramAccountId: string; imageUrl: string; caption?: string }): Promise<ApiResponse<{ mediaId: string; instagramAccountId: string; caption?: string }>> {
+        return this.request<{ mediaId: string; instagramAccountId: string; caption?: string }>('/facebook/instagram/photo/upload', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        })
+    }
+
+    async getInstagramMediaInsights(mediaId: string): Promise<ApiResponse<{ mediaId: string; insights: any }>> {
+        return this.request<{ mediaId: string; insights: any }>(`/facebook/instagram/media/${mediaId}/insights`, {
+            method: 'GET',
+        })
+    }
+
+    async getInstagramAccountInsights(instagramAccountId: string): Promise<ApiResponse<{ instagramAccountId: string; insights: any }>> {
+        return this.request<{ instagramAccountId: string; insights: any }>(`/facebook/instagram/account/${instagramAccountId}/insights`, {
+            method: 'GET',
+        })
+    }
 }
 
 // Create and export the API client instance
@@ -284,5 +345,5 @@ export const apiClient = new ApiClient(API_BASE_URL)
 // Export types for use in components
 export type {
     ApiResponse, AuthResponse, FacebookConnectionStatus, FacebookPage, FacebookPagesResponse, FacebookUser, ForgotPasswordRequest, LoginRequest, OTPRequest, ResendVerificationRequest, ResetPasswordRequest, SignupRequest, UpdateProfileRequest, User, VerifyEmailRequest
-}
+};
 

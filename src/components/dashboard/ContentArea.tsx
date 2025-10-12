@@ -1,7 +1,7 @@
 'use client'
 
 import ContentList from '@/components/dashboard/ContentList'
-import FacebookPageConnection from '@/components/dashboard/FacebookPageConnection'
+import FacebookBusinessConnection from '@/components/dashboard/FacebookBusinessConnection'
 import PostContentCreator from '@/components/dashboard/PostContentCreator'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { Calendar, Clock, Plus } from 'lucide-react'
@@ -58,8 +58,8 @@ export default function ContentArea({ activeTab }: ContentAreaProps) {
 function ScheduleContent() {
   return (
     <div className="space-y-6">
-      {/* Facebook Page Connection Section */}
-      <FacebookPageConnection />
+      {/* Facebook Business Connection Section */}
+      <FacebookBusinessConnection />
       
       {/* Scheduled Content Section */}
       <div>
