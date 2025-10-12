@@ -14,7 +14,7 @@ const getApiBaseUrl = () => {
             // Replace this with your actual backend Vercel URL
             return process.env.NEXT_PUBLIC_API_URL || 'https://your-backend-app.vercel.app/api';
         } else {
-            // In development, use HTTP with port 5000
+            // In development, use HTTP with port 5000 //
             const port = '5000';
             return `http://${host}:${port}/api`;
         }
