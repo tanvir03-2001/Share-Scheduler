@@ -68,15 +68,28 @@ interface UpdateProfileRequest {
     avatar?: string
 }
 
+interface FacebookUser {
+    facebookId: string
+    facebookName: string
+    facebookEmail?: string
+    profilePicture?: string
+    connectedAt: string
+}
+
 interface FacebookPage {
-    id: string
-    name: string
+    pageId: string
+    pageName: string
     category: string
-    accessToken: string
     picture?: string
     followersCount?: number
-    tasks?: string[]
     connectedAt: string
+}
+
+interface FacebookConnectionStatus {
+    isConnected: boolean
+    facebookUser: FacebookUser | null
+    pages: FacebookPage[]
+    totalPages: number
 }
 
 interface FacebookPagesResponse {
@@ -216,8 +229,20 @@ class ApiClient {
     }
 
     // Facebook API methods
-    async generateFacebookAuthUrl(): Promise<ApiResponse<{ authUrl: string }>> {
-        return this.request<{ authUrl: string }>('/facebook/auth-url', {
+    async generateFacebookUserAuthUrl(): Promise<ApiResponse<{ authUrl: string }>> {
+        return this.request<{ authUrl: string }>('/facebook/user/auth-url', {
+            method: 'GET',
+        })
+    }
+
+    async generateFacebookPageAuthUrl(): Promise<ApiResponse<{ authUrl: string }>> {
+        return this.request<{ authUrl: string }>('/facebook/page/auth-url', {
+            method: 'GET',
+        })
+    }
+
+    async getFacebookConnectionStatus(): Promise<ApiResponse<FacebookConnectionStatus>> {
+        return this.request<FacebookConnectionStatus>('/facebook/status', {
             method: 'GET',
         })
     }
@@ -240,6 +265,12 @@ class ApiClient {
         })
     }
 
+    async disconnectFacebookUser(): Promise<ApiResponse<{ message: string }>> {
+        return this.request<{ message: string }>('/facebook/user/disconnect', {
+            method: 'DELETE',
+        })
+    }
+
     async getPageAccessToken(pageId: string): Promise<ApiResponse<{ pageId: string; accessToken: string; pageName: string }>> {
         return this.request<{ pageId: string; accessToken: string; pageName: string }>(`/facebook/pages/${pageId}/access-token`, {
             method: 'GET',
@@ -252,6 +283,6 @@ export const apiClient = new ApiClient(API_BASE_URL)
 
 // Export types for use in components
 export type {
-    ApiResponse, AuthResponse, FacebookPage, FacebookPagesResponse, ForgotPasswordRequest, LoginRequest, OTPRequest, ResendVerificationRequest, ResetPasswordRequest, SignupRequest, UpdateProfileRequest, User, VerifyEmailRequest
+    ApiResponse, AuthResponse, FacebookConnectionStatus, FacebookPage, FacebookPagesResponse, FacebookUser, ForgotPasswordRequest, LoginRequest, OTPRequest, ResendVerificationRequest, ResetPasswordRequest, SignupRequest, UpdateProfileRequest, User, VerifyEmailRequest
 }
 
