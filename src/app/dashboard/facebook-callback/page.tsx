@@ -27,7 +27,13 @@ function FacebookCallbackContent() {
         if (success === 'true') {
           setStatus('success');
           const pagesCount = pages ? parseInt(pages) : 0;
-          setMessage(`Successfully connected ${pagesCount} Facebook page(s)!`);
+          const type = searchParams.get('type');
+          
+          if (type === 'user') {
+            setMessage(`Facebook account connected successfully! ${pagesCount > 0 ? `Found and saved ${pagesCount} page(s).` : 'No pages found.'}`);
+          } else {
+            setMessage(`Successfully connected ${pagesCount} Facebook page(s)!`);
+          }
           
           // Redirect to dashboard after a short delay
           setTimeout(() => {
@@ -58,8 +64,8 @@ function FacebookCallbackContent() {
         {status === 'loading' && (
           <>
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Connecting Facebook Pages</h2>
-            <p className="text-sm text-gray-600">Please wait while we connect your Facebook pages...</p>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Connecting Facebook Account</h2>
+            <p className="text-sm text-gray-600">Please wait while we connect your Facebook account and fetch your pages...</p>
           </>
         )}
 

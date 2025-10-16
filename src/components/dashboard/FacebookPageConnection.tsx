@@ -60,6 +60,27 @@ export default function FacebookPageConnection({ onPagesConnected }: FacebookPag
         }
     };
 
+    const handleReconnectUser = async () => {
+        try {
+            setIsConnectingUser(true);
+            setError(null);
+            
+            const response = await apiClient.generateFacebookUserAuthUrl(true);
+            
+            if (response.success && response.data) {
+                // Redirect to Facebook OAuth for reconnection
+                window.location.href = response.data.authUrl;
+            } else {
+                setError(response.error || 'Failed to generate Facebook reconnect URL');
+            }
+        } catch (err) {
+            setError('Failed to reconnect Facebook account');
+            console.error('Error reconnecting Facebook user:', err);
+        } finally {
+            setIsConnectingUser(false);
+        }
+    };
+
     const handleConnectPages = async () => {
         try {
             setIsConnectingPages(true);
@@ -197,22 +218,33 @@ export default function FacebookPageConnection({ onPagesConnected }: FacebookPag
                     </p>
                 </div>
                 <div className="flex gap-3">
-                    {connectionStatus?.isConnected && connectionStatus.pages.length > 0 && (
+                    {connectionStatus?.isConnected && (
                         <>
                             <button
-                                onClick={handleRefreshPages}
-                                disabled={loading}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                                onClick={handleReconnectUser}
+                                disabled={isConnectingUser}
+                                className="px-4 py-2 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                             >
-                                {loading ? 'Refreshing...' : 'Refresh'}
+                                {isConnectingUser ? 'Reconnecting...' : 'Reconnect'}
                             </button>
-                            <button
-                                onClick={handleDisconnectPages}
-                                disabled={loading}
-                                className="px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-                            >
-                                Disconnect Pages
-                            </button>
+                            {connectionStatus.pages.length > 0 && (
+                                <>
+                                    <button
+                                        onClick={handleRefreshPages}
+                                        disabled={loading}
+                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                                    >
+                                        {loading ? 'Refreshing...' : 'Refresh'}
+                                    </button>
+                                    <button
+                                        onClick={handleDisconnectPages}
+                                        disabled={loading}
+                                        className="px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+                                    >
+                                        Disconnect Pages
+                                    </button>
+                                </>
+                            )}
                             <button
                                 onClick={handleDisconnectUser}
                                 disabled={loading}

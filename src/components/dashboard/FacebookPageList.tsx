@@ -1,18 +1,9 @@
 'use client'
 
 import Modal from '@/components/ui/Modal'
+import { apiClient, FacebookPage } from '@/lib/api'
 import { AlertCircle, CheckCircle, ExternalLink, Facebook, Users } from 'lucide-react'
-import { useState } from 'react'
-
-interface FacebookPage {
-  id: string
-  name: string
-  category: string
-  followers: number
-  isConnected: boolean
-  profilePicture: string
-  accessToken?: string
-}
+import { useEffect, useState } from 'react'
 
 interface FacebookPageListProps {
   onPageSelect: (page: FacebookPage) => void
@@ -20,64 +11,82 @@ interface FacebookPageListProps {
   onPageSwitch?: () => void
 }
 
-// Sample data - in real app, this would come from Facebook API
-const samplePages: FacebookPage[] = [
-  {
-    id: '1',
-    name: 'My Business Page',
-    category: 'Business',
-    followers: 1250,
-    isConnected: true,
-    profilePicture: '/api/placeholder/40/40',
-    accessToken: 'valid_token'
-  },
-  {
-    id: '2',
-    name: 'Tech News Hub',
-    category: 'Media/News',
-    followers: 5600,
-    isConnected: true,
-    profilePicture: '/api/placeholder/40/40',
-    accessToken: 'valid_token'
-  },
-  {
-    id: '3',
-    name: 'Fashion Store',
-    category: 'Shopping & Retail',
-    followers: 890,
-    isConnected: false,
-    profilePicture: '/api/placeholder/40/40'
-  },
-  {
-    id: '4',
-    name: 'Local Restaurant',
-    category: 'Restaurant',
-    followers: 320,
-    isConnected: true,
-    profilePicture: '/api/placeholder/40/40',
-    accessToken: 'valid_token'
-  }
-]
-
 export default function FacebookPageList({ onPageSelect, selectedPageId, onPageSwitch }: FacebookPageListProps) {
-  const [isConnected, setIsConnected] = useState(true) // Set to true to show pages
-  const [isLoading, setIsLoading] = useState(false)
+  const [pages, setPages] = useState<FacebookPage[]>([])
+  const [isConnected, setIsConnected] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [showPageList, setShowPageList] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Load Facebook connection status and pages
+  useEffect(() => {
+    loadFacebookPages()
+  }, [])
+
+  const loadFacebookPages = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      const response = await apiClient.getFacebookConnectionStatus()
+      
+      if (response.success && response.data) {
+        setIsConnected(response.data.isConnected)
+        setPages(response.data.pages)
+        
+        // Auto-select first page if none selected
+        if (response.data.pages.length > 0 && !selectedPageId) {
+          onPageSelect(response.data.pages[0])
+        }
+      } else {
+        setError(response.error || 'Failed to load Facebook pages')
+      }
+    } catch (err) {
+      setError('Failed to load Facebook pages')
+      console.error('Error loading Facebook pages:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleFacebookLogin = async () => {
-    setIsLoading(true)
-    // Simulate Facebook login process
-    setTimeout(() => {
-      setIsConnected(true)
+    try {
+      setIsLoading(true)
+      const response = await apiClient.generateFacebookUserAuthUrl()
+      
+      if (response.success && response.data) {
+        window.location.href = response.data.authUrl
+      } else {
+        setError(response.error || 'Failed to generate Facebook auth URL')
+      }
+    } catch (err) {
+      setError('Failed to connect Facebook account')
+      console.error('Error connecting Facebook:', err)
+    } finally {
       setIsLoading(false)
-    }, 2000)
+    }
+  }
+
+  const handleFacebookReconnect = async () => {
+    try {
+      setIsLoading(true)
+      const response = await apiClient.generateFacebookUserAuthUrl(true)
+      
+      if (response.success && response.data) {
+        window.location.href = response.data.authUrl
+      } else {
+        setError(response.error || 'Failed to generate Facebook reconnect URL')
+      }
+    } catch (err) {
+      setError('Failed to reconnect Facebook account')
+      console.error('Error reconnecting Facebook:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handlePageSelect = (page: FacebookPage) => {
-    if (page.isConnected) {
-      onPageSelect(page)
-      setShowPageList(false)
-    }
+    onPageSelect(page)
+    setShowPageList(false)
   }
 
   const handlePageSwitch = () => {
@@ -91,7 +100,42 @@ export default function FacebookPageList({ onPageSelect, selectedPageId, onPageS
     setShowPageList(false)
   }
 
-  const selectedPage = samplePages.find(page => page.id === selectedPageId) || samplePages[0]
+  const selectedPage = pages.find(page => page.pageId === selectedPageId) || pages[0]
+
+  if (isLoading) {
+    return (
+      <div className="p-4">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+            <span className="text-gray-600">Loading Facebook pages...</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-4">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <div className="flex items-center mb-4">
+            <AlertCircle className="w-6 h-6 text-red-600 mr-3" />
+            <div>
+              <h3 className="font-semibold text-red-900">Error Loading Pages</h3>
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          </div>
+          <button
+            onClick={loadFacebookPages}
+            className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (!isConnected) {
     return (
@@ -137,38 +181,113 @@ export default function FacebookPageList({ onPageSelect, selectedPageId, onPageS
     )
   }
 
+  if (pages.length === 0) {
+    return (
+      <div className="p-4">
+        <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 border border-orange-200">
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center mr-4">
+              <Facebook className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">No Pages Found</h3>
+              <p className="text-sm text-gray-600">You don't have any Facebook pages connected</p>
+            </div>
+          </div>
+          
+          <p className="text-sm text-gray-600 mb-4">
+            You need to connect your Facebook pages to start managing and scheduling posts.
+          </p>
+          
+          <button
+            onClick={handleFacebookLogin}
+            disabled={isLoading}
+            className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Connecting...
+              </>
+            ) : (
+              <>
+                <Facebook className="w-4 h-4 mr-2" />
+                Connect Facebook Pages
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-4">
       {/* Active Page Display */}
-      <div 
-        onClick={handlePageSwitch}
-        className="p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all duration-200 group"
-      >
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 group-hover:bg-blue-200 transition-colors">
-            <Facebook className="w-5 h-5 text-blue-600" />
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center">
-              <h4 className="font-medium text-sm text-gray-900 truncate">{selectedPage.name}</h4>
-              <CheckCircle className="w-4 h-4 text-green-500 ml-2 flex-shrink-0" />
-            </div>
+      {selectedPage && (
+        <div 
+          onClick={handlePageSwitch}
+          className="p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all duration-200 group"
+        >
+          <div className="flex items-center">
+            {selectedPage.picture ? (
+              <img
+                src={selectedPage.picture}
+                alt={selectedPage.pageName}
+                className="w-10 h-10 rounded-full object-cover mr-3 flex-shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 group-hover:bg-blue-200 transition-colors">
+                <Facebook className="w-5 h-5 text-blue-600" />
+              </div>
+            )}
             
-            <div className="flex items-center mt-1">
-              <span className="text-xs text-gray-500">{selectedPage.category}</span>
-              <span className="text-xs text-gray-400 mx-2">•</span>
+            <div className="flex-1 min-w-0">
               <div className="flex items-center">
-                <Users className="w-3 h-3 text-gray-400 mr-1" />
-                <span className="text-xs text-gray-500">{selectedPage.followers.toLocaleString()}</span>
+                <h4 className="font-medium text-sm text-gray-900 truncate">{selectedPage.pageName}</h4>
+                <CheckCircle className="w-4 h-4 text-green-500 ml-2 flex-shrink-0" />
+              </div>
+              
+              <div className="flex items-center mt-1">
+                <span className="text-xs text-gray-500">{selectedPage.category}</span>
+                {selectedPage.followersCount && (
+                  <>
+                    <span className="text-xs text-gray-400 mx-2">•</span>
+                    <div className="flex items-center">
+                      <Users className="w-3 h-3 text-gray-400 mr-1" />
+                      <span className="text-xs text-gray-500">{selectedPage.followersCount.toLocaleString()}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
-          </div>
-          
-          <div className="ml-2">
-            <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+            
+            <div className="ml-2">
+              <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+            </div>
           </div>
         </div>
+      )}
+
+      {/* Reconnect Button */}
+      <div className="mt-3">
+        <button
+          onClick={handleFacebookReconnect}
+          disabled={isLoading}
+          className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center border border-blue-200"
+        >
+          {isLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+              Reconnecting...
+            </>
+          ) : (
+            <>
+              <Facebook className="w-4 h-4 mr-2" />
+              Reconnect Facebook Account
+            </>
+          )}
+        </button>
       </div>
 
       {/* Page List Modal */}
@@ -183,51 +302,47 @@ export default function FacebookPageList({ onPageSelect, selectedPageId, onPageS
             Choose a Facebook page to manage and schedule content for.
           </p>
           
-          {samplePages.map((page) => (
+          {pages.map((page) => (
             <div
-              key={page.id}
+              key={page.pageId}
               onClick={() => handlePageSelect(page)}
               className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
-                selectedPageId === page.id
+                selectedPageId === page.pageId
                   ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-100'
-                  : page.isConnected
-                  ? 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                  : 'bg-gray-50 border-gray-200 opacity-60 cursor-not-allowed'
+                  : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
               }`}
             >
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                  <Facebook className="w-6 h-6 text-blue-600" />
-                </div>
+                {page.picture ? (
+                  <img
+                    src={page.picture}
+                    alt={page.pageName}
+                    className="w-12 h-12 rounded-lg object-cover mr-4 flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                    <Facebook className="w-6 h-6 text-blue-600" />
+                  </div>
+                )}
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center">
-                    <h4 className="font-semibold text-gray-900 truncate">{page.name}</h4>
-                    {page.isConnected ? (
-                      <CheckCircle className="w-5 h-5 text-green-500 ml-3 flex-shrink-0" />
-                    ) : (
-                      <AlertCircle className="w-5 h-5 text-orange-500 ml-3 flex-shrink-0" />
-                    )}
+                    <h4 className="font-semibold text-gray-900 truncate">{page.pageName}</h4>
+                    <CheckCircle className="w-5 h-5 text-green-500 ml-3 flex-shrink-0" />
                   </div>
                   
                   <div className="flex items-center mt-2">
                     <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
                       {page.category}
                     </span>
-                    <div className="flex items-center ml-3">
-                      <Users className="w-4 h-4 text-gray-400 mr-1" />
-                      <span className="text-sm text-gray-600">{page.followers.toLocaleString()} followers</span>
-                    </div>
+                    {page.followersCount && (
+                      <div className="flex items-center ml-3">
+                        <Users className="w-4 h-4 text-gray-400 mr-1" />
+                        <span className="text-sm text-gray-600">{page.followersCount.toLocaleString()} followers</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-                
-                {!page.isConnected && (
-                  <div className="ml-4">
-                    <button className="text-sm bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-medium">
-                      Connect Required
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           ))}
@@ -246,3 +361,4 @@ export default function FacebookPageList({ onPageSelect, selectedPageId, onPageS
     </div>
   )
 }
+

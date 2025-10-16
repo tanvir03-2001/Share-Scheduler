@@ -251,8 +251,9 @@ class ApiClient {
     }
 
     // Facebook API methods
-    async generateFacebookUserAuthUrl(): Promise<ApiResponse<{ authUrl: string }>> {
-        return this.request<{ authUrl: string }>('/facebook/user/auth-url', {
+    async generateFacebookUserAuthUrl(reconnect: boolean = false): Promise<ApiResponse<{ authUrl: string }>> {
+        const url = reconnect ? '/facebook/user/auth-url?reconnect=true' : '/facebook/user/auth-url';
+        return this.request<{ authUrl: string }>(url, {
             method: 'GET',
         })
     }

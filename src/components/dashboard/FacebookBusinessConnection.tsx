@@ -1,7 +1,7 @@
 'use client';
 
 import { apiClient, FacebookConnectionStatus, FacebookPage } from '@/lib/api';
-import { AlertCircle, CheckCircle, ExternalLink, Facebook } from 'lucide-react';
+import { AlertCircle, CheckCircle, Facebook } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface FacebookBusinessConnectionProps {
@@ -67,6 +67,28 @@ export default function FacebookBusinessConnection({
         }
     };
 
+    const handleReconnectFacebook = async () => {
+        try {
+            setIsConnecting(true);
+            setError(null);
+            
+            // Use Facebook Business OAuth for user reconnection
+            const response = await apiClient.generateFacebookUserAuthUrl(true);
+            
+            if (response.success && response.data) {
+                // Redirect to Facebook Business OAuth for reconnection
+                window.location.href = response.data.authUrl;
+            } else {
+                setError(response.error || 'Failed to generate Facebook reconnect URL');
+            }
+        } catch (err) {
+            setError('Failed to reconnect Facebook account');
+            console.error('Error reconnecting Facebook:', err);
+        } finally {
+            setIsConnecting(false);
+        }
+    };
+
     const formatFollowersCount = (count?: number) => {
         if (!count) return 'N/A';
         if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
@@ -118,8 +140,14 @@ export default function FacebookBusinessConnection({
                             </div>
                         </div>
                         <div className="flex items-center space-x-2">
+                            <button
+                                onClick={handleReconnectFacebook}
+                                disabled={isConnecting}
+                                className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                            >
+                                {isConnecting ? 'Reconnecting...' : 'Reconnect'}
+                            </button>
                             <span className="text-xs text-green-600 font-medium">Connected</span>
-                            <ExternalLink className="w-4 h-4 text-gray-400" />
                         </div>
                     </div>
                 )}
@@ -255,9 +283,9 @@ export default function FacebookBusinessConnection({
                         </div>
                     )}
 
-                    <div className="flex justify-center pt-4">
+                    <div className="flex justify-center pt-4 space-x-3">
                         <button
-                            onClick={handleConnectFacebook}
+                            onClick={handleReconnectFacebook}
                             disabled={isConnecting}
                             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                         >
@@ -267,14 +295,22 @@ export default function FacebookBusinessConnection({
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Connecting...
+                                    Reconnecting...
                                 </>
                             ) : (
                                 <>
                                     <Facebook className="-ml-1 mr-2 h-4 w-4" />
-                                    Add More Pages
+                                    Reconnect Account
                                 </>
                             )}
+                        </button>
+                        <button
+                            onClick={handleConnectFacebook}
+                            disabled={isConnecting}
+                            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                        >
+                            <Facebook className="-ml-1 mr-2 h-4 w-4" />
+                            Add More Pages
                         </button>
                     </div>
                 </div>
