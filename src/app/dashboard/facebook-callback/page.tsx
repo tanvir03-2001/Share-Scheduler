@@ -9,6 +9,8 @@ function FacebookCallbackContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
+  const [isRetryable, setIsRetryable] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -17,10 +19,12 @@ function FacebookCallbackContent() {
         const error = searchParams.get('error');
         const message = searchParams.get('message');
         const pages = searchParams.get('pages');
+        const retryable = searchParams.get('retryable');
 
         if (error === 'true') {
           setStatus('error');
           setMessage(message || 'Facebook authorization was cancelled or failed.');
+          setIsRetryable(retryable === 'true');
           return;
         }
 
@@ -91,12 +95,37 @@ function FacebookCallbackContent() {
             </div>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Connection Failed</h2>
             <p className="text-sm text-gray-600 mb-4">{message}</p>
-            <button
-              onClick={() => router.push('/dashboard/schedule')}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Return to Dashboard
-            </button>
+            
+            {isRetryable && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-sm text-yellow-800">
+                  <strong>This is a temporary issue.</strong> Facebook's API has rate limits that reset automatically. 
+                  You can try again in a few minutes.
+                </p>
+              </div>
+            )}
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => router.push('/dashboard/schedule')}
+                className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+              >
+                Return to Dashboard
+              </button>
+              
+              {isRetryable && (
+                <button
+                  onClick={() => {
+                    setRetryCount(prev => prev + 1);
+                    // Redirect back to Facebook connection
+                    router.push('/dashboard/schedule');
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              )}
+            </div>
           </>
         )}
       </div>

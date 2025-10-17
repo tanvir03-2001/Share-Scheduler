@@ -3,67 +3,51 @@
 import Tooltip from '@/components/ui/Tooltip'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
+import { apiClient, FacebookConnectionStatus, FacebookPage } from '@/lib/api'
 import {
-  BarChart3,
-  Bell,
-  Calendar,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Facebook,
-  FileText,
-  Image,
-  LogOut,
-  MessageSquare,
-  Plus,
-  Settings,
-  TrendingUp,
-  Type,
-  User,
-  Users,
-  Video
+    AlertCircle,
+    ArrowRight,
+    BarChart3,
+    Bell,
+    Calendar,
+    CheckCircle,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Eye,
+    EyeOff,
+    Facebook,
+    FileText,
+    Image,
+    Loader2,
+    Lock,
+    LogOut,
+    Mail,
+    MessageSquare,
+    Minus,
+    Plus,
+    Settings,
+    TrendingUp,
+    Type,
+    User,
+    Users,
+    Video
 } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 interface SidebarProps {
   activeTab?: string
 }
 
-interface FacebookPage {
-  id: string
-  name: string
-  logo: string
-  followersCount: number
-  isConnected: boolean
+interface LoginFormData {
+  email: string
+  password: string
 }
 
-// Demo data for Facebook pages - start with no connected pages
-const demoPages: FacebookPage[] = [
-  {
-    id: '1',
-    name: 'Tech News Hub',
-    logo: 'TN',
-    followersCount: 125000,
-    isConnected: false
-  },
-  {
-    id: '2', 
-    name: 'Fashion Trends',
-    logo: 'FT',
-    followersCount: 89000,
-    isConnected: false
-  },
-  {
-    id: '3',
-    name: 'Food & Recipes',
-    logo: 'FR', 
-    followersCount: 156000,
-    isConnected: false
-  }
-]
 
 const sidebarItems = [
   {
@@ -139,15 +123,35 @@ const sidebarItems = [
 ]
 
 export default function Sidebar({ activeTab }: SidebarProps) {
-  const { user, logout } = useAuth()
+  const { user, logout, login, isLoading } = useAuth()
   const { isCollapsed, isMobile, isMobileMenuOpen, toggleSidebar, closeMobileMenu } = useSidebar()
   const pathname = usePathname()
+  const router = useRouter()
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
   const [isPageDropdownOpen, setIsPageDropdownOpen] = useState(false)
   const [selectedPage, setSelectedPage] = useState<FacebookPage | null>(null)
-  const [pages, setPages] = useState<FacebookPage[]>(demoPages)
+  const [pages, setPages] = useState<FacebookPage[]>([])
+  const [showLoginForm, setShowLoginForm] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [connectionStatus, setConnectionStatus] = useState<FacebookConnectionStatus | null>(null)
+  const [isConnecting, setIsConnecting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const pageDropdownRef = useRef<HTMLDivElement>(null)
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset
+  } = useForm<LoginFormData>()
+
+  // Load Facebook connection status on mount
+  useEffect(() => {
+    if (user) {
+      loadConnectionStatus()
+    }
+  }, [user])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -166,6 +170,29 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     }
   }, [])
 
+  // Load Facebook connection status
+  const loadConnectionStatus = async () => {
+    try {
+      setError(null)
+      const response = await apiClient.getFacebookConnectionStatus()
+      
+      if (response.success && response.data) {
+        setConnectionStatus(response.data)
+        setPages(response.data.pages)
+        
+        // Auto-select first page if none selected
+        if (response.data.pages.length > 0 && !selectedPage) {
+          setSelectedPage(response.data.pages[0])
+        }
+      } else {
+        setError(response.error || 'Failed to load connection status')
+      }
+    } catch (err) {
+      setError('Failed to load connection status')
+      console.error('Error loading connection status:', err)
+    }
+  }
+
   // Helper function to format follower count
   const formatFollowerCount = (count: number) => {
     if (count >= 1000000) {
@@ -182,18 +209,75 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     setIsPageDropdownOpen(false)
   }
 
-  // Handle add page (connect Facebook profile)
-  const handleAddPage = () => {
-    // This would typically open a Facebook OAuth flow
-    console.log('Opening Facebook connection flow...')
-    setIsPageDropdownOpen(false)
-    
-    // For demo purposes, let's connect the first page
-    const updatedPages = pages.map((page, index) => 
-      index === 0 ? { ...page, isConnected: true } : page
-    )
+  // Handle Facebook connection
+  const handleConnectFacebook = async () => {
+    try {
+      setIsConnecting(true)
+      setError(null)
+      const response = await apiClient.generateFacebookUserAuthUrl()
+      
+      if (response.success && response.data) {
+        window.location.href = response.data.authUrl
+      } else {
+        setError(response.error || 'Failed to generate Facebook auth URL')
+      }
+    } catch (err) {
+      setError('Failed to connect Facebook account')
+      console.error('Error connecting Facebook:', err)
+    } finally {
+      setIsConnecting(false)
+    }
+  }
+
+  // Handle Facebook reconnect
+  const handleReconnectFacebook = async () => {
+    try {
+      setIsConnecting(true)
+      setError(null)
+      const response = await apiClient.generateFacebookUserAuthUrl()
+      
+      if (response.success && response.data) {
+        window.location.href = response.data.authUrl
+      } else {
+        setError(response.error || 'Failed to generate Facebook auth URL')
+      }
+    } catch (err) {
+      setError('Failed to reconnect Facebook account')
+      console.error('Error reconnecting Facebook:', err)
+    } finally {
+      setIsConnecting(false)
+    }
+  }
+
+  // Handle page removal
+  const handleRemovePage = (pageId: string) => {
+    const updatedPages = pages.filter(page => page.pageId !== pageId)
     setPages(updatedPages)
-    setSelectedPage(updatedPages[0])
+    
+    // If the removed page was selected, clear selection
+    if (selectedPage?.pageId === pageId) {
+      setSelectedPage(null)
+    }
+    setIsPageDropdownOpen(false)
+  }
+
+  // Handle login form submission
+  const onSubmit = async (data: LoginFormData) => {
+    const success = await login(data.email, data.password)
+    if (success) {
+      setShowLoginForm(false)
+      reset()
+      router.push('/dashboard')
+    }
+  }
+
+  // Handle quick login for demo
+  const handleQuickLogin = async (email: string, password: string) => {
+    const success = await login(email, password)
+    if (success) {
+      setShowLoginForm(false)
+      router.push('/dashboard')
+    }
   }
 
   return (
@@ -242,126 +326,293 @@ export default function Sidebar({ activeTab }: SidebarProps) {
         </button>
       </div>
 
-      {/* Facebook Page Management Section */}
-      <div className="p-2 md:p-3 border-b border-gray-100">
-        {selectedPage ? (
-          // Show page dropdown when pages are connected
-          <div className="relative" ref={pageDropdownRef}>
-            {/* Current Page Display */}
+      {/* Facebook Connection Section - Show when user is authenticated */}
+      {user && (
+        <div className="p-2 md:p-3 border-b border-gray-100">
+          {error && (
+            <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-xs">
+              <div className="flex items-center">
+                <AlertCircle className="h-3 w-3 text-red-400 mr-1 flex-shrink-0" />
+                <p className="text-red-800 text-xs">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {!connectionStatus?.isConnected ? (
+            // Show connect button when not connected
             <button
-              onClick={() => setIsPageDropdownOpen(!isPageDropdownOpen)}
-              className={`w-full flex items-center p-2 rounded-lg hover:bg-gray-50 transition-colors ${
-                isCollapsed ? 'justify-center' : 'justify-between'
+              onClick={handleConnectFacebook}
+              disabled={isConnecting}
+              className={`w-full flex items-center justify-center p-2 rounded-lg bg-facebook-500 hover:bg-facebook-600 disabled:bg-gray-400 text-white transition-colors ${
+                isCollapsed ? 'flex-col space-y-1' : 'space-x-2'
               }`}
             >
-              <div className={`flex items-center transition-all duration-300 ${
-                isCollapsed ? 'flex-col space-y-2' : 'space-x-3'
-              }`}>
-                <div className="h-8 w-8 bg-facebook-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <span className="text-white text-xs font-bold">
-                    {selectedPage.logo}
-                  </span>
-                </div>
+              {isConnecting ? (
+                <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
+              ) : (
+                <Facebook className="h-4 w-4 flex-shrink-0" />
+              )}
+              {!isCollapsed && (
+                <span className="text-xs font-medium">
+                  {isConnecting ? 'Connecting...' : 'Connect Facebook'}
+                </span>
+              )}
+            </button>
+          ) : (
+            // Show connected status and page management
+            <div className="space-y-2">
+              {/* Connection Status */}
+              <div className="flex items-center p-2 bg-green-50 border border-green-200 rounded-lg">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
                 {!isCollapsed && (
-                  <div className="flex-1 text-left">
-                    <p className="text-sm font-medium text-gray-900 truncate">{selectedPage.name}</p>
-                    <p className="text-xs text-gray-500">{formatFollowerCount(selectedPage.followersCount)} followers</p>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-green-800">Connected</p>
+                    <p className="text-xs text-green-600">
+                      Facebook Connected
+                    </p>
                   </div>
                 )}
               </div>
-              {!isCollapsed && (
-                <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
-                  isPageDropdownOpen ? 'rotate-180' : ''
-                }`} />
-              )}
-            </button>
 
-            {/* Page Dropdown Menu */}
-            {isPageDropdownOpen && (
-              <div className={`absolute top-full left-0 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 ${
-                isCollapsed ? 'w-48 left-0' : 'w-full'
-              }`}>
-                <div className="py-1">
-                  {/* Add Page Button */}
+              {/* Page Management */}
+              {pages.length > 0 ? (
+                <div className="relative" ref={pageDropdownRef}>
+                  {/* Current Page Display */}
                   <button
-                    onClick={handleAddPage}
-                    className="w-full flex items-center px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
+                    onClick={() => setIsPageDropdownOpen(!isPageDropdownOpen)}
+                    className={`w-full flex items-center p-2 rounded-lg hover:bg-gray-50 transition-colors ${
+                      isCollapsed ? 'justify-center' : 'justify-between'
+                    }`}
                   >
-                    <Plus className="h-4 w-4 mr-3 text-blue-500" />
-                    Add Page
-                  </button>
-                  
-                  {/* Divider */}
-                  <div className="border-t border-gray-100 my-1"></div>
-                  
-                  {/* Connected Pages */}
-                  {pages.filter(page => page.isConnected).map((page) => (
-                    <button
-                      key={page.id}
-                      onClick={() => handlePageSelect(page)}
-                      className={`w-full flex items-center px-4 py-2 text-sm transition-colors ${
-                        selectedPage.id === page.id 
-                          ? 'bg-blue-50 text-blue-700' 
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="h-6 w-6 bg-facebook-500 rounded flex items-center justify-center mr-3 flex-shrink-0">
+                    <div className={`flex items-center transition-all duration-300 ${
+                      isCollapsed ? 'flex-col space-y-1' : 'space-x-2'
+                    }`}>
+                      <div className="h-6 w-6 bg-facebook-500 rounded flex items-center justify-center flex-shrink-0">
                         <span className="text-white text-xs font-bold">
-                          {page.logo}
+                          {selectedPage?.pageName?.charAt(0)?.toUpperCase() || 'F'}
                         </span>
                       </div>
-                      <div className="flex-1 text-left">
-                        <p className="font-medium truncate">{page.name}</p>
-                        <p className="text-xs text-gray-500">{formatFollowerCount(page.followersCount)} followers</p>
-                      </div>
-                    </button>
-                  ))}
-                  
-                  {/* Disconnected Pages */}
-                  {pages.filter(page => !page.isConnected).length > 0 && (
-                    <>
-                      <div className="border-t border-gray-100 my-1"></div>
-                      <div className="px-4 py-2">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Not Connected</p>
-                      </div>
-                      {pages.filter(page => !page.isConnected).map((page) => (
+                      {!isCollapsed && selectedPage && (
+                        <div className="flex-1 text-left">
+                          <p className="text-xs font-medium text-gray-900 truncate">{selectedPage.pageName}</p>
+                          <p className="text-xs text-gray-500">{formatFollowerCount(selectedPage.followersCount || 0)} followers</p>
+                        </div>
+                      )}
+                    </div>
+                    {!isCollapsed && (
+                      <ChevronDown className={`h-3 w-3 text-gray-400 transition-transform duration-200 ${
+                        isPageDropdownOpen ? 'rotate-180' : ''
+                      }`} />
+                    )}
+                  </button>
+
+                  {/* Page Dropdown Menu */}
+                  {isPageDropdownOpen && (
+                    <div className={`absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 ${
+                      isCollapsed ? 'w-48 left-0' : 'w-full'
+                    }`}>
+                      <div className="py-1">
+                        {/* Reconnect Button */}
                         <button
-                          key={page.id}
-                          onClick={() => handleAddPage()}
-                          className="w-full flex items-center px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 transition-colors"
+                          onClick={handleReconnectFacebook}
+                          disabled={isConnecting}
+                          className="w-full flex items-center px-3 py-2 text-xs text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50"
                         >
-                          <div className="h-6 w-6 bg-gray-300 rounded flex items-center justify-center mr-3 flex-shrink-0">
-                            <span className="text-gray-600 text-xs font-bold">
-                              {page.logo}
-                            </span>
-                          </div>
-                          <div className="flex-1 text-left">
-                            <p className="font-medium truncate">{page.name}</p>
-                            <p className="text-xs text-gray-400">Click to connect</p>
-                          </div>
+                          <Facebook className="h-3 w-3 mr-2 text-blue-500" />
+                          {isConnecting ? 'Reconnecting...' : 'Reconnect Account'}
                         </button>
-                      ))}
-                    </>
+                        
+                        {/* Divider */}
+                        <div className="border-t border-gray-100 my-1"></div>
+                        
+                        {/* Connected Pages */}
+                        {pages.map((page) => (
+                          <div key={page.pageId} className="group">
+                            <button
+                              onClick={() => handlePageSelect(page)}
+                              className={`w-full flex items-center px-3 py-2 text-xs transition-colors ${
+                                selectedPage?.pageId === page.pageId 
+                                  ? 'bg-blue-50 text-blue-700' 
+                                  : 'text-gray-700 hover:bg-gray-50'
+                              }`}
+                            >
+                              <div className="h-5 w-5 bg-facebook-500 rounded flex items-center justify-center mr-2 flex-shrink-0">
+                                <span className="text-white text-xs font-bold">
+                                  {page.pageName?.charAt(0)?.toUpperCase() || 'P'}
+                                </span>
+                              </div>
+                              <div className="flex-1 text-left">
+                                <p className="font-medium truncate">{page.pageName}</p>
+                                <p className="text-xs text-gray-500">{formatFollowerCount(page.followersCount || 0)} followers</p>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleRemovePage(page.pageId)
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 text-red-500 hover:text-red-700 transition-all duration-200"
+                                title="Remove page"
+                              >
+                                <Minus className="h-3 w-3" />
+                              </button>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
+              ) : (
+                <button
+                  onClick={handleReconnectFacebook}
+                  disabled={isConnecting}
+                  className={`w-full flex items-center justify-center p-2 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors ${
+                    isCollapsed ? 'flex-col space-y-1' : 'space-x-2'
+                  }`}
+                >
+                  <Plus className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                  {!isCollapsed && (
+                    <span className="text-xs font-medium">Add Pages</span>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Login Form Section - Show when user is not authenticated */}
+      {!user && (
+        <div className="p-2 md:p-3 border-b border-gray-100">
+          {!showLoginForm ? (
+            <button
+              onClick={() => setShowLoginForm(true)}
+              className={`w-full flex items-center justify-center p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors ${
+                isCollapsed ? 'flex-col space-y-2' : 'space-x-2'
+              }`}
+            >
+              <User className="h-5 w-5 flex-shrink-0" />
+              {!isCollapsed && (
+                <span className="text-sm font-medium">Login</span>
+              )}
+            </button>
+          ) : (
+            <div className="space-y-3">
+              {/* Quick Login Buttons */}
+              <div className="space-y-2">
+                <button
+                  onClick={() => handleQuickLogin('test@example.com', 'password123')}
+                  className="w-full text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-1 px-2 rounded transition-colors"
+                >
+                  Demo User
+                </button>
               </div>
-            )}
-          </div>
-        ) : (
-          // Show simple Add Page button when no pages are connected
-          <button
-            onClick={handleAddPage}
-            className={`w-full flex items-center p-2 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors ${
-              isCollapsed ? 'justify-center' : 'justify-center'
-            }`}
-          >
-            <Plus className="h-5 w-5 text-blue-500 flex-shrink-0" />
-            {!isCollapsed && (
-              <span className="ml-2 text-sm font-medium">Add Page</span>
-            )}
-          </button>
-        )}
-      </div>
+
+              {/* Login Form */}
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+                {/* Email Field */}
+                <div className="space-y-1">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                      <Mail className="h-3 w-3 text-gray-400" />
+                    </div>
+                    <input
+                      {...register('email', {
+                        required: 'Email is required',
+                        pattern: {
+                          value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                          message: 'Invalid email',
+                        },
+                      })}
+                      type="email"
+                      className="w-full pl-6 pr-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      placeholder="Email"
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="text-xs text-red-500">{errors.email.message}</p>
+                  )}
+                </div>
+
+                {/* Password Field */}
+                <div className="space-y-1">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                      <Lock className="h-3 w-3 text-gray-400" />
+                    </div>
+                    <input
+                      {...register('password', {
+                        required: 'Password is required',
+                        minLength: {
+                          value: 6,
+                          message: 'Min 6 characters',
+                        },
+                      })}
+                      type={showPassword ? 'text' : 'password'}
+                      className="w-full pl-6 pr-8 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      placeholder="Password"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-2 flex items-center"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-3 w-3 text-gray-400" />
+                      ) : (
+                        <Eye className="h-3 w-3 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="text-xs text-red-500">{errors.password.message}</p>
+                  )}
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-1 py-1.5 px-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white rounded text-xs font-medium transition-colors"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    <>
+                      Sign in
+                      <ArrowRight className="h-3 w-3" />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Cancel Button */}
+              <button
+                onClick={() => {
+                  setShowLoginForm(false)
+                  reset()
+                }}
+                className="w-full text-xs text-gray-500 hover:text-gray-700 py-1 transition-colors"
+              >
+                Cancel
+              </button>
+
+              {/* Sign Up Link */}
+              <div className="text-center">
+                <Link
+                  href="/auth/signup"
+                  className="text-xs text-blue-600 hover:text-blue-500 transition-colors"
+                >
+                  Create account
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       
       <div className="flex-1 overflow-y-auto p-2 md:p-3 scrollbar-thin">
         {/* Navigation Items */}

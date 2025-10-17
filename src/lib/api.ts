@@ -1,6 +1,8 @@
 // API Configuration and Helper Functions
 // This file contains the API integration layer for authentication
 
+import { RetryUtil } from './retry.util';
+
 // Configure API base URL for separate frontend/backend hosting
 const getApiBaseUrl = () => {
     if (typeof window !== 'undefined') {
@@ -141,11 +143,21 @@ class ApiClient {
             ...options,
         }
 
-        try {
+        return RetryUtil.executeWithRetry(async () => {
             const response = await fetch(url, config)
             const data = await response.json()
 
             if (!response.ok) {
+                // Handle rate limiting specifically
+                if (response.status === 429) {
+                    const retryAfter = response.headers.get('Retry-After');
+                    const errorMessage = retryAfter
+                        ? `Rate limit exceeded. Please try again in ${retryAfter} seconds.`
+                        : 'Rate limit exceeded. Please try again later.';
+
+                    throw new Error(errorMessage);
+                }
+
                 return {
                     success: false,
                     error: data.message || 'An error occurred',
@@ -158,12 +170,20 @@ class ApiClient {
                 data: data.data,
                 message: data.message,
             }
-        } catch (error) {
+        }, {
+            maxRetries: 2,
+            baseDelay: 1000,
+            retryCondition: (error) => {
+                // Retry on rate limiting and network errors
+                return RetryUtil.isRateLimitError(error) || RetryUtil.isNetworkError(error);
+            }
+        }).catch((error) => {
+            // If all retries failed, return a user-friendly error
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Network error',
+                error: RetryUtil.getUserFriendlyErrorMessage(error),
             }
-        }
+        });
     }
 
     // Authentication API methods
