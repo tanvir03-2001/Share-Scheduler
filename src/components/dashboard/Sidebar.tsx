@@ -153,6 +153,18 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     }
   }, [user])
 
+  // Reload connection status when returning from Facebook callback
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user) {
+        loadConnectionStatus()
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [user])
+
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -234,7 +246,7 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     try {
       setIsConnecting(true)
       setError(null)
-      const response = await apiClient.generateFacebookUserAuthUrl()
+      const response = await apiClient.generateFacebookUserAuthUrl(true) // Pass true for reconnect
       
       if (response.success && response.data) {
         window.location.href = response.data.authUrl

@@ -32,9 +32,14 @@ function FacebookCallbackContent() {
           setStatus('success');
           const pagesCount = pages ? parseInt(pages) : 0;
           const type = searchParams.get('type');
+          const reconnect = searchParams.get('reconnect');
           
           if (type === 'user') {
-            setMessage(`Facebook account connected successfully! ${pagesCount > 0 ? `Found and saved ${pagesCount} page(s).` : 'No pages found.'}`);
+            if (reconnect === 'true') {
+              setMessage(`Facebook account reconnected successfully! ${pagesCount > 0 ? `Found and updated ${pagesCount} page(s).` : 'No pages found.'}`);
+            } else {
+              setMessage(`Facebook account connected successfully! ${pagesCount > 0 ? `Found and saved ${pagesCount} page(s).` : 'No pages found.'}`);
+            }
           } else {
             setMessage(`Successfully connected ${pagesCount} Facebook page(s)!`);
           }
