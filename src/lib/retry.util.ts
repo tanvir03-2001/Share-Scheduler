@@ -17,13 +17,10 @@ export class RetryUtil {
         maxDelay: 30000, // 30 seconds
         backoffMultiplier: 2,
         retryCondition: (error: any) => {
-            // Retry on rate limiting, network errors, and transient errors
+            // Retry on network errors and transient errors only
             if (error.message) {
                 const message = error.message.toLowerCase();
                 return (
-                    message.includes('rate limit') ||
-                    message.includes('request limit') ||
-                    message.includes('throttle') ||
                     message.includes('temporary') ||
                     message.includes('transient') ||
                     message.includes('network') ||
@@ -72,19 +69,11 @@ export class RetryUtil {
     }
 
     /**
-     * Check if an error is a rate limit error
+     * Check if an error is a rate limit error (deprecated - no longer used)
      */
     static isRateLimitError(error: any): boolean {
-        if (!error.message) return false;
-
-        const message = error.message.toLowerCase();
-        return (
-            message.includes('rate limit') ||
-            message.includes('request limit') ||
-            message.includes('throttle') ||
-            message.includes('too many requests') ||
-            message.includes('429')
-        );
+        // Always return false since we removed rate limiting
+        return false;
     }
 
     /**
@@ -127,9 +116,7 @@ export class RetryUtil {
 
         const message = error.message.toLowerCase();
 
-        if (this.isRateLimitError(error)) {
-            return 'Too many requests. Please wait a moment and try again.';
-        }
+        // Rate limiting removed - no longer show rate limit messages
 
         if (this.isNetworkError(error)) {
             return 'Network connection issue. Please check your internet connection and try again.';

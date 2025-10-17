@@ -106,6 +106,7 @@ interface FacebookPage {
     category: string
     picture?: string
     followersCount?: number
+    isDefaultActive: boolean
     connectedAt: string
 }
 
@@ -148,16 +149,6 @@ class ApiClient {
             const data = await response.json()
 
             if (!response.ok) {
-                // Handle rate limiting specifically
-                if (response.status === 429) {
-                    const retryAfter = response.headers.get('Retry-After');
-                    const errorMessage = retryAfter
-                        ? `Rate limit exceeded. Please try again in ${retryAfter} seconds.`
-                        : 'Rate limit exceeded. Please try again later.';
-
-                    throw new Error(errorMessage);
-                }
-
                 return {
                     success: false,
                     error: data.message || 'An error occurred',
@@ -174,8 +165,8 @@ class ApiClient {
             maxRetries: 2,
             baseDelay: 1000,
             retryCondition: (error) => {
-                // Retry on rate limiting and network errors
-                return RetryUtil.isRateLimitError(error) || RetryUtil.isNetworkError(error);
+                // Retry on network errors only
+                return RetryUtil.isNetworkError(error);
             }
         }).catch((error) => {
             // If all retries failed, return a user-friendly error
@@ -323,6 +314,12 @@ class ApiClient {
     async getFacebookAppInfo(): Promise<ApiResponse<{ appId: string; redirectUri: string; scopes: string[] }>> {
         return this.request<{ appId: string; redirectUri: string; scopes: string[] }>('/facebook/app-info', {
             method: 'GET',
+        })
+    }
+
+    async setActiveFacebookPage(pageId: string): Promise<ApiResponse<{ pageId: string; pageName: string; message: string }>> {
+        return this.request<{ pageId: string; pageName: string; message: string }>(`/facebook/pages/${pageId}/set-active`, {
+            method: 'PUT',
         })
     }
 

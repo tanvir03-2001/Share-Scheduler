@@ -33,9 +33,10 @@ export default function FacebookPageList({ onPageSelect, selectedPageId, onPageS
         setIsConnected(response.data.isConnected)
         setPages(response.data.pages)
         
-        // Auto-select first page if none selected
+        // Auto-select default active page if none selected
         if (response.data.pages.length > 0 && !selectedPageId) {
-          onPageSelect(response.data.pages[0])
+          const defaultActivePage = response.data.pages.find(page => page.isDefaultActive) || response.data.pages[0]
+          onPageSelect(defaultActivePage)
         }
       } else {
         setError(response.error || 'Failed to load Facebook pages')
@@ -84,9 +85,20 @@ export default function FacebookPageList({ onPageSelect, selectedPageId, onPageS
     }
   }
 
-  const handlePageSelect = (page: FacebookPage) => {
-    onPageSelect(page)
-    setShowPageList(false)
+  const handlePageSelect = async (page: FacebookPage) => {
+    try {
+      // Call API to set this page as active
+      await apiClient.setActiveFacebookPage(page.pageId)
+      
+      // Update local state
+      onPageSelect(page)
+      setShowPageList(false)
+    } catch (err) {
+      console.error('Error setting active page:', err)
+      // Still update local state even if API call fails
+      onPageSelect(page)
+      setShowPageList(false)
+    }
   }
 
   const handlePageSwitch = () => {

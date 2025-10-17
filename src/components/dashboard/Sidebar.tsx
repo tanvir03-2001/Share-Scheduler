@@ -192,9 +192,17 @@ export default function Sidebar({ activeTab }: SidebarProps) {
         setConnectionStatus(response.data)
         setPages(response.data.pages)
         
-        // Auto-select first page if none selected
+        // Debug: Log page data to check picture URLs
+        console.log('Facebook pages loaded:', response.data.pages.map(page => ({
+          name: page.pageName,
+          picture: page.picture,
+          followers: page.followersCount
+        })))
+        
+        // Auto-select default active page if none selected
         if (response.data.pages.length > 0 && !selectedPage) {
-          setSelectedPage(response.data.pages[0])
+          const defaultActivePage = response.data.pages.find(page => page.isDefaultActive) || response.data.pages[0]
+          setSelectedPage(defaultActivePage)
         }
       } else {
         setError(response.error || 'Failed to load connection status')
@@ -216,9 +224,20 @@ export default function Sidebar({ activeTab }: SidebarProps) {
   }
 
   // Handle page selection
-  const handlePageSelect = (page: FacebookPage) => {
-    setSelectedPage(page)
-    setIsPageDropdownOpen(false)
+  const handlePageSelect = async (page: FacebookPage) => {
+    try {
+      // Call API to set this page as active
+      await apiClient.setActiveFacebookPage(page.pageId)
+      
+      // Update local state
+      setSelectedPage(page)
+      setIsPageDropdownOpen(false)
+    } catch (err) {
+      console.error('Error setting active page:', err)
+      // Still update local state even if API call fails
+      setSelectedPage(page)
+      setIsPageDropdownOpen(false)
+    }
   }
 
   // Handle Facebook connection
@@ -399,11 +418,19 @@ export default function Sidebar({ activeTab }: SidebarProps) {
                     <div className={`flex items-center transition-all duration-300 ${
                       isCollapsed ? 'flex-col space-y-1' : 'space-x-2'
                     }`}>
-                      <div className="h-6 w-6 bg-facebook-500 rounded flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-xs font-bold">
-                          {selectedPage?.pageName?.charAt(0)?.toUpperCase() || 'F'}
-                        </span>
-                      </div>
+                      {selectedPage?.picture ? (
+                        <img
+                          src={selectedPage.picture}
+                          alt={selectedPage.pageName}
+                          className="h-6 w-6 rounded object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="h-6 w-6 bg-facebook-500 rounded flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-xs font-bold">
+                            {selectedPage?.pageName?.charAt(0)?.toUpperCase() || 'F'}
+                          </span>
+                        </div>
+                      )}
                       {!isCollapsed && selectedPage && (
                         <div className="flex-1 text-left">
                           <p className="text-xs font-medium text-gray-900 truncate">{selectedPage.pageName}</p>
@@ -448,11 +475,19 @@ export default function Sidebar({ activeTab }: SidebarProps) {
                                   : 'text-gray-700 hover:bg-gray-50'
                               }`}
                             >
-                              <div className="h-5 w-5 bg-facebook-500 rounded flex items-center justify-center mr-2 flex-shrink-0">
-                                <span className="text-white text-xs font-bold">
-                                  {page.pageName?.charAt(0)?.toUpperCase() || 'P'}
-                                </span>
-                              </div>
+                              {page.picture ? (
+                                <img
+                                  src={page.picture}
+                                  alt={page.pageName}
+                                  className="h-5 w-5 rounded object-cover mr-2 flex-shrink-0"
+                                />
+                              ) : (
+                                <div className="h-5 w-5 bg-facebook-500 rounded flex items-center justify-center mr-2 flex-shrink-0">
+                                  <span className="text-white text-xs font-bold">
+                                    {page.pageName?.charAt(0)?.toUpperCase() || 'P'}
+                                  </span>
+                                </div>
+                              )}
                               <div className="flex-1 text-left">
                                 <p className="font-medium truncate">{page.pageName}</p>
                                 <p className="text-xs text-gray-500">{formatFollowerCount(page.followersCount || 0)} followers</p>
