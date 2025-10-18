@@ -355,6 +355,160 @@ class ApiClient {
             method: 'GET',
         })
     }
+
+    // Content API methods
+    async createContent(data: {
+        postType: string;
+        content: string;
+        hashtags?: string;
+        platforms: string[];
+        publishMode: 'now' | 'schedule';
+        scheduleDate?: string;
+        scheduleTimes?: string[];
+    }, files?: File[]): Promise<ApiResponse<{ contentId: string; scheduledPosts?: any[] }>> {
+        const formData = new FormData();
+
+        // Add text data
+        formData.append('postType', data.postType);
+        formData.append('content', data.content);
+        formData.append('platforms', JSON.stringify(data.platforms));
+        formData.append('publishMode', data.publishMode);
+
+        if (data.hashtags) {
+            formData.append('hashtags', data.hashtags);
+        }
+
+        if (data.publishMode === 'schedule') {
+            if (data.scheduleDate) {
+                formData.append('scheduleDate', data.scheduleDate);
+            }
+            if (data.scheduleTimes) {
+                formData.append('scheduleTimes', JSON.stringify(data.scheduleTimes));
+            }
+        }
+
+        // Add files if provided
+        if (files && files.length > 0) {
+            files.forEach(file => {
+                formData.append('mediaFiles', file);
+            });
+        }
+
+        const url = `${this.baseURL}/content`;
+
+        return RetryUtil.executeWithRetry(async () => {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+                credentials: 'include',
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    error: responseData.message || 'Failed to create content',
+                    message: responseData.message,
+                };
+            }
+
+            return {
+                success: responseData.success,
+                data: responseData.data,
+                message: responseData.message,
+            };
+        }, {
+            maxRetries: 2,
+            baseDelay: 1000,
+            retryCondition: (error) => RetryUtil.isNetworkError(error)
+        }).catch((error) => ({
+            success: false,
+            error: RetryUtil.getUserFriendlyErrorMessage(error),
+        }));
+    }
+
+    async updateContent(contentId: string, data: {
+        content?: string;
+        hashtags?: string;
+        platforms?: string[];
+        publishMode?: 'now' | 'schedule';
+        scheduleDate?: string;
+        scheduleTimes?: string[];
+    }, files?: File[]): Promise<ApiResponse<any>> {
+        const formData = new FormData();
+
+        // Add text data
+        if (data.content !== undefined) formData.append('content', data.content);
+        if (data.hashtags !== undefined) formData.append('hashtags', data.hashtags);
+        if (data.platforms !== undefined) formData.append('platforms', JSON.stringify(data.platforms));
+        if (data.publishMode !== undefined) formData.append('publishMode', data.publishMode);
+
+        if (data.publishMode === 'schedule') {
+            if (data.scheduleDate) {
+                formData.append('scheduleDate', data.scheduleDate);
+            }
+            if (data.scheduleTimes) {
+                formData.append('scheduleTimes', JSON.stringify(data.scheduleTimes));
+            }
+        }
+
+        // Add files if provided
+        if (files && files.length > 0) {
+            files.forEach(file => {
+                formData.append('mediaFiles', file);
+            });
+        }
+
+        const url = `${this.baseURL}/content/${contentId}`;
+
+        return RetryUtil.executeWithRetry(async () => {
+            const response = await fetch(url, {
+                method: 'PUT',
+                body: formData,
+                credentials: 'include',
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    error: responseData.message || 'Failed to update content',
+                    message: responseData.message,
+                };
+            }
+
+            return {
+                success: responseData.success,
+                data: responseData.data,
+                message: responseData.message,
+            };
+        }, {
+            maxRetries: 2,
+            baseDelay: 1000,
+            retryCondition: (error) => RetryUtil.isNetworkError(error)
+        }).catch((error) => ({
+            success: false,
+            error: RetryUtil.getUserFriendlyErrorMessage(error),
+        }));
+    }
+
+    async getUserContent(page: number = 1, limit: number = 10, status?: string, postType?: string): Promise<ApiResponse<any>> {
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: limit.toString(),
+        });
+
+        if (status) params.append('status', status);
+        if (postType) params.append('postType', postType);
+
+        return this.request(`/content?${params.toString()}`);
+    }
+
+    async deleteContent(contentId: string): Promise<ApiResponse<any>> {
+        return this.request(`/content/${contentId}`, { method: 'DELETE' });
+    }
 }
 
 // Create and export the API client instance

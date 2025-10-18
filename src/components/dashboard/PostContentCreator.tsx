@@ -14,10 +14,9 @@ import {
     Type,
     Upload,
     Users,
-    Video,
     X
 } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface PostType {
   id: string
@@ -37,24 +36,17 @@ interface UploadedFile {
 const postTypes: PostType[] = [
   {
     id: 'text',
-    name: 'Text Post',
+    name: 'Text',
     icon: Type,
     description: 'Share text content with your audience',
     color: 'bg-blue-500'
   },
   {
     id: 'image',
-    name: 'Image Post',
+    name: 'Image',
     icon: Image,
     description: 'Share photos and images',
     color: 'bg-green-500'
-  },
-  {
-    id: 'video',
-    name: 'Video Post',
-    icon: Video,
-    description: 'Share video content',
-    color: 'bg-purple-500'
   },
   {
     id: 'reel',
@@ -81,7 +73,7 @@ export default function PostContentCreator() {
   const [publishMode, setPublishMode] = useState<'now' | 'schedule'>('now')
   const [scheduleDate, setScheduleDate] = useState('')
   const [scheduleTimes, setScheduleTimes] = useState<string[]>([''])
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['facebook'])
   const [hashtags, setHashtags] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [showUploadModal, setShowUploadModal] = useState(false)
@@ -89,6 +81,13 @@ export default function PostContentCreator() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const totalSteps = 4
+
+  // Ensure Facebook is always selected by default
+  useEffect(() => {
+    if (selectedPlatforms.length === 0) {
+      setSelectedPlatforms(['facebook'])
+    }
+  }, [selectedPlatforms.length])
 
   // Initialize default date and time
   const getDefaultDate = () => {
@@ -113,7 +112,7 @@ export default function PostContentCreator() {
   }
 
   const platforms = [
-    { id: 'facebook', name: 'Facebook', icon: Users },
+    { id: 'facebook', name: 'Facebook', icon: Users, default: true },
     { id: 'instagram', name: 'Instagram', icon: Camera },
     { id: 'twitter', name: 'Twitter', icon: Hash },
     { id: 'linkedin', name: 'LinkedIn', icon: Globe }
@@ -190,7 +189,7 @@ export default function PostContentCreator() {
       id: Math.random().toString(36).substr(2, 9),
       file,
       preview: URL.createObjectURL(file),
-      type: file.type.startsWith('video/') ? 'video' : 'image'
+      type: (selectedPostType === 'reel' || file.type.startsWith('video/')) ? 'video' : 'image'
     }))
     
     setUploadedFiles(prev => [...prev, ...newFiles])
@@ -214,11 +213,17 @@ export default function PostContentCreator() {
   }
 
   const togglePlatform = (platformId: string) => {
-    setSelectedPlatforms(prev => 
-      prev.includes(platformId) 
-        ? prev.filter(p => p !== platformId)
-        : [...prev, platformId]
-    )
+    setSelectedPlatforms(prev => {
+      if (prev.includes(platformId)) {
+        // Don't allow deselecting the last platform
+        if (prev.length <= 1) {
+          return prev
+        }
+        return prev.filter(p => p !== platformId)
+      } else {
+        return [...prev, platformId]
+      }
+    })
   }
 
   const addScheduleTime = () => {
@@ -247,16 +252,30 @@ export default function PostContentCreator() {
     const startDate = new Date(scheduleDate)
     const schedulePlan: Array<{date: string, time: string, postNumber: number}> = []
     
-    validTimes.forEach((time, index) => {
+    // Calculate schedule plan with smart time distribution
+    const totalPosts = Math.max(validTimes.length, uploadedFiles.length)
+    
+    for (let i = 0; i < totalPosts; i++) {
       const currentDate = new Date(startDate)
-      currentDate.setDate(startDate.getDate() + index)
+      let timeToUse = validTimes[0] || '09:00'
+      
+      // Smart distribution: use available times first, then move to next date
+      if (i < validTimes.length) {
+        // Use different time on same date
+        timeToUse = validTimes[i]
+      } else {
+        // Move to next date and use first time
+        const daysToAdd = Math.floor(i / validTimes.length)
+        currentDate.setDate(currentDate.getDate() + daysToAdd)
+        timeToUse = validTimes[i % validTimes.length]
+      }
       
       schedulePlan.push({
         date: currentDate.toISOString().split('T')[0],
-        time: time,
-        postNumber: index + 1
+        time: timeToUse,
+        postNumber: i + 1
       })
-    })
+    }
     
     return schedulePlan
   }
@@ -264,18 +283,151 @@ export default function PostContentCreator() {
   const handleSubmit = async () => {
     setIsUploading(true)
     
-    const schedulePlan = generateSchedulePlan()
-    console.log('Publishing with plan:', {
-      postType: selectedPostType,
-      content,
-      platforms: selectedPlatforms,
-      publishMode,
-      schedulePlan
-    })
-    
-    // Simulate upload process
-    setTimeout(() => {
-      setIsUploading(false)
+    try {
+      // Debug logging
+      console.log('Form submission started:', {
+        currentStep,
+        selectedPostType,
+        selectedPlatforms,
+        content: content.trim(),
+        uploadedFiles: uploadedFiles.length,
+        publishMode
+      });
+      
+      // Client-side validation
+      const hasMediaFiles = uploadedFiles.length > 0;
+      const hasContent = content.trim().length > 0;
+      const isMediaPost = ['image', 'reel', 'story'].includes(selectedPostType);
+      
+      // Validate content requirements
+      if (selectedPostType === 'text' && !hasContent) {
+        alert('Content is required for text posts');
+        setIsUploading(false);
+        return;
+      }
+      
+      if (isMediaPost && !hasContent && !hasMediaFiles) {
+        alert('Either content or media files are required for media posts');
+        setIsUploading(false);
+        return;
+      }
+      
+      // Validate platform selection
+      if (selectedPlatforms.length === 0) {
+        alert('At least one platform must be selected. Please go back to step 3 and select a platform.');
+        setIsUploading(false);
+        return;
+      }
+      
+      console.log('Selected platforms:', selectedPlatforms);
+      
+      const schedulePlan = generateSchedulePlan()
+      console.log('Publishing with plan:', {
+        postType: selectedPostType,
+        content,
+        platforms: selectedPlatforms,
+        publishMode,
+        schedulePlan
+      })
+      
+      // Import API client
+      const { apiClient } = await import('../../lib/api')
+      
+      // Create separate content entries for each media file
+      const files = uploadedFiles.map(file => file.file)
+      let successCount = 0
+      let errorCount = 0
+      
+      if (files.length > 0) {
+        // Create separate content for each file
+        for (let i = 0; i < files.length; i++) {
+          const singleFile = [files[i]]
+          
+          // Calculate smart schedule date and time for each video
+          let videoScheduleDate = scheduleDate
+          let videoScheduleTime = scheduleTimes[0] || '09:00'
+          
+          if (publishMode === 'schedule' && scheduleDate && scheduleTimes.length > 0) {
+            const validTimes = scheduleTimes.filter(time => time.trim() !== '')
+            
+            // Smart distribution: use available times first, then move to next date
+            if (i < validTimes.length) {
+              // Use different time on same date
+              videoScheduleTime = validTimes[i]
+            } else {
+              // Move to next date and use first time
+              const daysToAdd = Math.floor(i / validTimes.length)
+              const originalDate = new Date(scheduleDate)
+              originalDate.setDate(originalDate.getDate() + daysToAdd)
+              videoScheduleDate = originalDate.toISOString().split('T')[0]
+              videoScheduleTime = validTimes[i % validTimes.length]
+            }
+          }
+          
+          // Create content data for this specific file
+          const contentData = {
+            postType: selectedPostType,
+            content: content.trim() || '', // Use the same content for all files
+            hashtags,
+            platforms: selectedPlatforms,
+            publishMode,
+            scheduleDate: publishMode === 'schedule' ? videoScheduleDate : undefined,
+            scheduleTimes: publishMode === 'schedule' ? [videoScheduleTime] : undefined
+          }
+          
+          try {
+            const response = await apiClient.createContent(contentData, singleFile)
+            
+            if (response.success) {
+              console.log(`Content ${i + 1} created successfully:`, response.data)
+              successCount++
+            } else {
+              console.error(`Failed to create content ${i + 1}:`, response.error)
+              errorCount++
+            }
+          } catch (error) {
+            console.error(`Error creating content ${i + 1}:`, error)
+            errorCount++
+          }
+        }
+      } else {
+        // No media files, create single content entry
+        const contentData = {
+          postType: selectedPostType,
+          content: content.trim() || '',
+          hashtags,
+          platforms: selectedPlatforms,
+          publishMode,
+          scheduleDate: publishMode === 'schedule' ? scheduleDate : undefined,
+          scheduleTimes: publishMode === 'schedule' ? scheduleTimes.filter(time => time.trim() !== '') : undefined
+        }
+        
+        const response = await apiClient.createContent(contentData, [])
+        
+        if (response.success) {
+          console.log('Content created successfully:', response.data)
+          successCount++
+        } else {
+          console.error('Failed to create content:', response.error)
+          errorCount++
+        }
+      }
+      
+      // Show result message
+      if (successCount > 0 && errorCount === 0) {
+        if (successCount > 1 && publishMode === 'schedule') {
+          alert(`Successfully created ${successCount} content items! They will be scheduled on consecutive dates starting from ${scheduleDate}.`)
+        } else {
+          alert(`Successfully created ${successCount} content item(s)!`)
+        }
+      } else if (successCount > 0 && errorCount > 0) {
+        alert(`Successfully created ${successCount} content item(s), but ${errorCount} failed.`)
+      } else {
+        alert('Failed to create content. Please try again.')
+        setIsUploading(false)
+        return
+      }
+      
       // Reset form
       setContent('')
       setUploadedFiles([])
@@ -283,7 +435,14 @@ export default function PostContentCreator() {
       setScheduleTimes([''])
       setHashtags('')
       setPublishMode('now')
-    }, 2000)
+      setSelectedPostType('')
+      setCurrentStep(1)
+    } catch (error) {
+      console.error('Error creating content:', error)
+      alert('An error occurred while creating content. Please try again.')
+    } finally {
+      setIsUploading(false)
+    }
   }
 
   return (
@@ -292,6 +451,24 @@ export default function PostContentCreator() {
       <div className="mb-4">
         <h1 className="text-lg md:text-xl font-bold text-gray-900 mb-1">Create New Post</h1>
         <p className="text-gray-500 text-xs md:text-sm">Step {currentStep} of {totalSteps}: {getStepTitle()}</p>
+        {selectedPlatforms.length > 0 && (
+          <div className="mt-2 flex items-center space-x-2">
+            <span className="text-xs text-gray-600">Selected platforms:</span>
+            {selectedPlatforms.map(platformId => {
+              const platform = platforms.find(p => p.id === platformId)
+              if (platform) {
+                const Icon = platform.icon
+                return (
+                  <div key={platformId} className="flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                    <Icon className="w-3 h-3 mr-1" />
+                    {platform.name}
+                  </div>
+                )
+              }
+              return null
+            })}
+          </div>
+        )}
       </div>
 
       {/* Compact Progress Bar */}
@@ -398,7 +575,7 @@ export default function PostContentCreator() {
                 })}
               </div>
             ) : (
-              <span className="text-gray-400 text-xs">Not selected</span>
+              <span className="text-red-500 text-xs">⚠️ Required</span>
             )}
           </div>
 
@@ -407,10 +584,20 @@ export default function PostContentCreator() {
             <h4 className="font-medium text-gray-900 mb-2 text-xs uppercase tracking-wide">Content</h4>
             <div className="space-y-1">
               <div className="flex items-center">
-                <div className={`w-2 h-2 rounded-full mr-2 ${content.trim() ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                <span className="text-gray-800 text-xs font-medium">Text: {content.trim() ? 'Added' : 'Empty'}</span>
+                <div className={`w-2 h-2 rounded-full mr-2 ${
+                  content.trim() || (['image', 'reel', 'story'].includes(selectedPostType) && uploadedFiles.length > 0) 
+                    ? 'bg-green-500' 
+                    : selectedPostType === 'text' || (['image', 'reel', 'story'].includes(selectedPostType) && uploadedFiles.length === 0)
+                      ? 'bg-red-500'
+                      : 'bg-gray-300'
+                }`}></div>
+                <span className="text-gray-800 text-xs font-medium">
+                  Text: {content.trim() ? 'Added' : 
+                    selectedPostType === 'text' ? 'Required' :
+                    ['image', 'reel', 'story'].includes(selectedPostType) && uploadedFiles.length > 0 ? 'Optional' : 'Required'}
+                </span>
               </div>
-              {(selectedPostType === 'image' || selectedPostType === 'video' || selectedPostType === 'reel' || selectedPostType === 'story') && (
+              {(selectedPostType === 'image' || selectedPostType === 'reel' || selectedPostType === 'story') && (
                 <div className="flex items-center">
                   <div className={`w-2 h-2 rounded-full mr-2 ${uploadedFiles.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                   <span className="text-gray-800 text-xs font-medium">Media: {uploadedFiles.length} file(s)</span>
@@ -581,20 +768,24 @@ export default function PostContentCreator() {
         {currentStep === 3 && (
           <div>
             <h2 className="text-base md:text-lg font-bold text-gray-900 mb-4">Select Platforms</h2>
+            <p className="text-sm text-gray-600 mb-4">Choose which platforms to publish your content to. At least one platform must be selected.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {platforms.map((platform) => {
                 const Icon = platform.icon
                 const isSelected = selectedPlatforms.includes(platform.id)
+                const isLastSelected = isSelected && selectedPlatforms.length === 1
                 
                 return (
                   <button
                     key={platform.id}
                     onClick={() => togglePlatform(platform.id)}
+                    disabled={isLastSelected}
                     className={`p-3 rounded-lg border-2 transition-all duration-200 ${
                       isSelected
                         ? 'border-blue-500 bg-blue-50 shadow-sm'
                         : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    } ${isLastSelected ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}
+                    title={isLastSelected ? 'At least one platform must be selected' : ''}
                   >
                     <div className="flex items-center">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${
@@ -604,6 +795,9 @@ export default function PostContentCreator() {
                       </div>
                       <div className="text-left flex-1">
                         <h3 className="font-bold text-gray-900 text-sm">{platform.name}</h3>
+                        {isLastSelected && (
+                          <p className="text-xs text-gray-500 mt-1">Required</p>
+                        )}
                       </div>
                       {isSelected && (
                         <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
@@ -615,6 +809,9 @@ export default function PostContentCreator() {
                 )
               })}
             </div>
+            {selectedPlatforms.length === 0 && (
+              <p className="text-red-500 text-sm mt-3">⚠️ At least one platform must be selected</p>
+            )}
           </div>
         )}
 
@@ -625,14 +822,27 @@ export default function PostContentCreator() {
           {/* Content Input */}
             <div className="mb-4">
               <label className="block text-xs font-semibold text-gray-900 mb-2 uppercase tracking-wide">
-                Post Content
+                Post Content {selectedPostType === 'text' && <span className="text-red-500">*</span>}
+                {['image', 'reel', 'story'].includes(selectedPostType) && uploadedFiles.length === 0 && <span className="text-red-500">*</span>}
               </label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-                placeholder="What's on your mind? Share your thoughts with your audience..."
+                placeholder={
+                  selectedPostType === 'text' 
+                    ? "What's on your mind? Share your thoughts with your audience..."
+                    : uploadedFiles.length > 0
+                      ? "Add a caption for your media (optional)..."
+                      : "Add a caption for your media..."
+                }
                 className="w-full h-24 p-3 border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm transition-all duration-200"
             />
+            {selectedPostType === 'text' && !content.trim() && (
+              <p className="text-red-500 text-xs mt-1">Content is required for text posts</p>
+            )}
+            {['image', 'reel', 'story'].includes(selectedPostType) && !content.trim() && uploadedFiles.length === 0 && (
+              <p className="text-red-500 text-xs mt-1">Either content or media files are required</p>
+            )}
             </div>
             
             {/* Hashtags */}
@@ -650,11 +860,19 @@ export default function PostContentCreator() {
           </div>
 
             {/* Compact File Upload */}
-          {(selectedPostType === 'image' || selectedPostType === 'video' || selectedPostType === 'reel' || selectedPostType === 'story') && (
+          {(selectedPostType === 'image' || selectedPostType === 'reel' || selectedPostType === 'story') && (
               <div className="mb-4">
                 <label className="block text-xs font-semibold text-gray-900 mb-2 uppercase tracking-wide">
                   Media Upload
                 </label>
+                <p className="text-xs text-blue-600 mb-2">
+                  💡 Each file will create a separate post with its own timestamp
+                  {publishMode === 'schedule' && uploadedFiles.length > 1 && (
+                    <span className="block mt-1 text-purple-600">
+                      📅 Smart scheduling: Videos will use different times on same date, then move to next date
+                    </span>
+                  )}
+                </p>
                 
                 {/* Compact Drag and Drop Area */}
               <div
@@ -671,7 +889,7 @@ export default function PostContentCreator() {
                     <Upload className="w-6 h-6 text-white" />
                   </div>
                   <p className="text-sm font-bold text-gray-900 mb-1">
-                  Drag and drop files here
+                  Drag and drop {selectedPostType === 'reel' ? 'videos' : selectedPostType === 'story' ? 'images or videos' : 'images'} here
                 </p>
                   <p className="text-gray-600 mb-3 text-xs">
                   or click to browse files
@@ -686,7 +904,7 @@ export default function PostContentCreator() {
                   ref={fileInputRef}
                   type="file"
                   multiple
-                  accept="image/*,video/*"
+                  accept={selectedPostType === 'reel' ? 'video/*' : selectedPostType === 'story' ? 'image/*,video/*' : 'image/*'}
                   onChange={handleFileInputChange}
                   className="hidden"
                 />
