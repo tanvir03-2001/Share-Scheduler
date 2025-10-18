@@ -18,7 +18,7 @@ import {
   Users,
   X
 } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 interface PostType {
   id: string
@@ -268,6 +268,17 @@ export default function PostContentCreator() {
         return ''
     }
   }
+
+  // Memoize placeholder to prevent unnecessary re-renders
+  const contentPlaceholder = useMemo(() => {
+    if (selectedPostType === 'text') {
+      return "What's on your mind? Share your thoughts with your audience..."
+    }
+    if (uploadedFiles.length > 0) {
+      return "Add a caption for your media (optional)..."
+    }
+    return "Add a caption for your media..."
+  }, [selectedPostType, uploadedFiles.length])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -590,7 +601,7 @@ export default function PostContentCreator() {
   }
 
   return (
-    <div key={`post-creator-${Date.now()}`} className="max-w-4xl mx-auto px-2 md:px-3 py-4 overflow-x-hidden">
+    <div className="max-w-4xl mx-auto px-2 md:px-3 py-4 overflow-x-hidden relative">
       {/* Header */}
       <div className="mb-4">
         <h1 className="text-lg md:text-xl font-bold text-gray-900 mb-1">Create New Post</h1>
@@ -648,7 +659,7 @@ export default function PostContentCreator() {
       </div>
 
       {/* Compact Overview Panel */}
-      <div className="mb-4 bg-white rounded-lg shadow-sm border border-gray-100 p-2 md:p-3">
+      <div className="mb-4 bg-white rounded-lg shadow-sm border border-gray-100 p-2 md:p-3 sticky top-0 z-[999999]">
         <h3 className="text-xs md:text-sm font-semibold text-gray-900 mb-3 flex items-center">
           <div className="w-4 h-4 md:w-5 md:h-5 bg-gradient-to-r from-blue-500 to-blue-600 rounded flex items-center justify-center mr-2">
             <Check className="w-2 h-2 md:w-3 md:h-3 text-white" />
@@ -977,14 +988,8 @@ export default function PostContentCreator() {
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-                placeholder={
-                  selectedPostType === 'text' 
-                    ? "What's on your mind? Share your thoughts with your audience..."
-                    : uploadedFiles.length > 0
-                      ? "Add a caption for your media (optional)..."
-                      : "Add a caption for your media..."
-                }
-                className="w-full h-24 p-3 border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm transition-all duration-200"
+              placeholder={contentPlaceholder}
+              className="w-full h-24 p-3 border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm transition-all duration-200"
             />
             {selectedPostType === 'text' && !content.trim() && (
               <p className="text-red-500 text-xs mt-1">Content is required for text posts</p>
