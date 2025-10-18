@@ -1,20 +1,22 @@
 'use client'
 
+import BeautifulAlert from '@/components/ui/BeautifulAlert'
 import UploadModal from '@/components/ui/UploadModal'
+import UploadProgress from '@/components/ui/UploadProgress'
 import {
-    ArrowLeft,
-    ArrowRight,
-    Camera,
-    Check,
-    Globe,
-    Hash,
-    Image,
-    Play,
-    Plus,
-    Type,
-    Upload,
-    Users,
-    X
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  Check,
+  Globe,
+  Hash,
+  Image,
+  Play,
+  Plus,
+  Type,
+  Upload,
+  Users,
+  X
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
@@ -71,16 +73,103 @@ export default function PostContentCreator() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isDragOver, setIsDragOver] = useState(false)
   const [publishMode, setPublishMode] = useState<'now' | 'schedule'>('now')
-  const [scheduleDate, setScheduleDate] = useState('')
-  const [scheduleTimes, setScheduleTimes] = useState<string[]>([''])
+  const [scheduleDate, setScheduleDate] = useState(() => {
+    const today = new Date()
+    // Format as YYYY-MM-DD using local date components
+    const year = today.getFullYear()
+    const month = (today.getMonth() + 1).toString().padStart(2, '0')
+    const day = today.getDate().toString().padStart(2, '0')
+    return `${year}-${month}-${day}`
+  })
+  const [scheduleTimes, setScheduleTimes] = useState<string[]>(() => {
+    const now = new Date()
+    now.setMinutes(now.getMinutes() + 40) // Add 40 minutes
+    return [now.toTimeString().slice(0, 5)] // Format as HH:MM
+  })
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['facebook'])
   const [hashtags, setHashtags] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [showUploadModal, setShowUploadModal] = useState(false)
   
+  // Beautiful alert states
+  const [alert, setAlert] = useState<{
+    type: 'success' | 'error' | 'warning' | 'info'
+    title: string
+    message: string
+    isVisible: boolean
+  }>({
+    type: 'info',
+    title: '',
+    message: '',
+    isVisible: false
+  })
+  
+  // Progress states
+  const [progress, setProgress] = useState<{
+    isVisible: boolean
+    current: number
+    total: number
+    currentFileName?: string
+  }>({
+    isVisible: false,
+    current: 0,
+    total: 0
+  })
+  
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const totalSteps = 4
+
+  // Ensure date is properly initialized on component mount
+  useEffect(() => {
+    console.log('🚀 PostContentCreator component mounted!')
+    
+    const today = new Date()
+    // Format as YYYY-MM-DD using local date components
+    const year = today.getFullYear()
+    const month = (today.getMonth() + 1).toString().padStart(2, '0')
+    const day = today.getDate().toString().padStart(2, '0')
+    const todayString = `${year}-${month}-${day}`
+    
+    console.log('🔍 Date Debug Info:')
+    console.log('Current system date (LOCAL):', todayString)
+    console.log('Current scheduleDate state:', scheduleDate)
+    console.log('Date comparison:', scheduleDate !== todayString)
+    
+    // Always force update to today's date
+    console.log('🔄 Force updating date to:', todayString)
+    setScheduleDate(todayString)
+    
+    // Force update time if it's empty or invalid
+    if (scheduleTimes.length === 0 || scheduleTimes[0] === '') {
+      const now = new Date()
+      now.setMinutes(now.getMinutes() + 40) // Add 40 minutes
+      const timeString = now.toTimeString().slice(0, 5) // Format as HH:MM
+      console.log('🕐 Force updating time to:', timeString)
+      setScheduleTimes([timeString])
+    }
+  }, [scheduleDate, scheduleTimes]) // Run when these values change
+
+  // Helper functions for beautiful alerts
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
+    setAlert({ type, title, message, isVisible: true })
+  }
+
+  const hideAlert = () => {
+    setAlert(prev => ({ ...prev, isVisible: false }))
+  }
+
+  const showProgress = (total: number) => {
+    setProgress({ isVisible: true, current: 0, total })
+  }
+
+  const updateProgress = (current: number, fileName?: string) => {
+    setProgress(prev => ({ ...prev, current, currentFileName: fileName }))
+  }
+
+  const hideProgress = () => {
+    setProgress(prev => ({ ...prev, isVisible: false }))
+  }
 
   // Ensure Facebook is always selected by default
   useEffect(() => {
@@ -92,7 +181,21 @@ export default function PostContentCreator() {
   // Initialize default date and time
   const getDefaultDate = () => {
     const today = new Date()
-    return today.toISOString().split('T')[0]
+    // Format as YYYY-MM-DD using local date components
+    const year = today.getFullYear()
+    const month = (today.getMonth() + 1).toString().padStart(2, '0')
+    const day = today.getDate().toString().padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  // Get minimum date (today) for schedule date picker
+  const getMinDate = () => {
+    const today = new Date()
+    // Format as YYYY-MM-DD using local date components
+    const year = today.getFullYear()
+    const month = (today.getMonth() + 1).toString().padStart(2, '0')
+    const day = today.getDate().toString().padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   const getDefaultTime = () => {
@@ -301,22 +404,35 @@ export default function PostContentCreator() {
       
       // Validate content requirements
       if (selectedPostType === 'text' && !hasContent) {
-        alert('Content is required for text posts');
+        showAlert('error', 'Content Required', 'Content is required for text posts');
         setIsUploading(false);
         return;
       }
       
       if (isMediaPost && !hasContent && !hasMediaFiles) {
-        alert('Either content or media files are required for media posts');
+        showAlert('error', 'Content or Media Required', 'Either content or media files are required for media posts');
         setIsUploading(false);
         return;
       }
       
       // Validate platform selection
       if (selectedPlatforms.length === 0) {
-        alert('At least one platform must be selected. Please go back to step 3 and select a platform.');
+        showAlert('error', 'Platform Required', 'At least one platform must be selected. Please go back to step 3 and select a platform.');
         setIsUploading(false);
         return;
+      }
+      
+      // Validate schedule date (must be today or future)
+      if (publishMode === 'schedule' && scheduleDate) {
+        const selectedDate = new Date(scheduleDate)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0) // Reset time to start of day
+        
+        if (selectedDate < today) {
+          showAlert('error', 'Invalid Date', 'Schedule date cannot be in the past. Please select today or a future date.');
+          setIsUploading(false);
+          return;
+        }
       }
       
       console.log('Selected platforms:', selectedPlatforms);
@@ -338,9 +454,15 @@ export default function PostContentCreator() {
       let successCount = 0
       let errorCount = 0
       
+      // Show progress indicator
+      const totalItems = files.length > 0 ? files.length : 1
+      showProgress(totalItems)
+      
       if (files.length > 0) {
         // Create separate content for each file
         for (let i = 0; i < files.length; i++) {
+          // Update progress
+          updateProgress(i, files[i].name)
           const singleFile = [files[i]]
           
           // Calculate smart schedule date and time for each video
@@ -389,6 +511,9 @@ export default function PostContentCreator() {
             console.error(`Error creating content ${i + 1}:`, error)
             errorCount++
           }
+          
+          // Update progress after each upload
+          updateProgress(i + 1, files[i].name)
         }
       } else {
         // No media files, create single content entry
@@ -413,17 +538,24 @@ export default function PostContentCreator() {
         }
       }
       
+      // Hide progress and show result
+      hideProgress()
+      
       // Show result message
       if (successCount > 0 && errorCount === 0) {
         if (successCount > 1 && publishMode === 'schedule') {
-          alert(`Successfully created ${successCount} content items! They will be scheduled on consecutive dates starting from ${scheduleDate}.`)
+          showAlert('success', 'Content Scheduled Successfully!', 
+            `${successCount} content items have been scheduled on consecutive dates starting from ${scheduleDate}. No page reload required!`)
         } else {
-          alert(`Successfully created ${successCount} content item(s)!`)
+          showAlert('success', 'Content Created Successfully!', 
+            `${successCount} content item(s) has been created and is ready to publish!`)
         }
       } else if (successCount > 0 && errorCount > 0) {
-        alert(`Successfully created ${successCount} content item(s), but ${errorCount} failed.`)
+        showAlert('warning', 'Partial Success', 
+          `Successfully created ${successCount} content item(s), but ${errorCount} failed. Please check your connection and try again.`)
       } else {
-        alert('Failed to create content. Please try again.')
+        showAlert('error', 'Upload Failed', 
+          'Failed to create content. Please check your connection and try again.')
         setIsUploading(false)
         return
       }
@@ -431,22 +563,34 @@ export default function PostContentCreator() {
       // Reset form
       setContent('')
       setUploadedFiles([])
-      setScheduleDate('')
-      setScheduleTimes([''])
+      setScheduleDate(() => {
+        const today = new Date()
+        // Format as YYYY-MM-DD using local date components
+        const year = today.getFullYear()
+        const month = (today.getMonth() + 1).toString().padStart(2, '0')
+        const day = today.getDate().toString().padStart(2, '0')
+        return `${year}-${month}-${day}`
+      })
+      setScheduleTimes(() => {
+        const now = new Date()
+        now.setMinutes(now.getMinutes() + 40) // Add 40 minutes
+        return [now.toTimeString().slice(0, 5)] // Format as HH:MM
+      })
       setHashtags('')
       setPublishMode('now')
       setSelectedPostType('')
       setCurrentStep(1)
     } catch (error) {
       console.error('Error creating content:', error)
-      alert('An error occurred while creating content. Please try again.')
+      hideProgress()
+      showAlert('error', 'Unexpected Error', 'An unexpected error occurred while creating content. Please try again.')
     } finally {
       setIsUploading(false)
     }
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-2 md:px-3 py-4 overflow-x-hidden">
+    <div key={`post-creator-${Date.now()}`} className="max-w-4xl mx-auto px-2 md:px-3 py-4 overflow-x-hidden">
       {/* Header */}
       <div className="mb-4">
         <h1 className="text-lg md:text-xl font-bold text-gray-900 mb-1">Create New Post</h1>
@@ -699,9 +843,14 @@ export default function PostContentCreator() {
                     <label className="block text-xs font-semibold text-purple-800 mb-1 uppercase tracking-wide">
                       Start Date
                     </label>
+                    <p className="text-xs text-purple-600 mb-2">
+                      📅 Select today or a future date for scheduling
+                    </p>
                     <input
                       type="date"
                       value={scheduleDate}
+                      defaultValue={getDefaultDate()}
+                      min={getMinDate()}
                       onChange={(e) => setScheduleDate(e.target.value)}
                       className="w-full p-2 border border-purple-200 rounded-lg focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-sm"
                     />
@@ -1006,6 +1155,26 @@ export default function PostContentCreator() {
         platforms={selectedPlatforms}
         publishMode={publishMode}
         onUploadComplete={handleUploadComplete}
+      />
+
+      {/* Beautiful Alert */}
+      <BeautifulAlert
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        isVisible={alert.isVisible}
+        onClose={hideAlert}
+        autoClose={true}
+        duration={6000}
+      />
+
+      {/* Upload Progress */}
+      <UploadProgress
+        isVisible={progress.isVisible}
+        current={progress.current}
+        total={progress.total}
+        currentFileName={progress.currentFileName}
+        onClose={hideProgress}
       />
     </div>
   )
