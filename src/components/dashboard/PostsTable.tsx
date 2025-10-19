@@ -253,7 +253,7 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
         <table className="w-full min-w-[800px]">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 md:px-6 py-3 text-left">
+              <th className="px-4 md:px-6 py-2 text-left">
                 <input
                   type="checkbox"
                   checked={selectedPosts.length === filteredContent.length && filteredContent.length > 0}
@@ -261,14 +261,11 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
               </th>
-              <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[300px]">
+              <th className="px-4 md:px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[300px]">
                 Posts
               </th>
-              <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date
-              </th>
-              <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Time
+              <th className="px-4 md:px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date and Time
               </th>
               <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                 Reach
@@ -284,7 +281,7 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredContent.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50">
-                <td className="px-4 md:px-6 py-4">
+                <td className="px-4 md:px-6 py-2">
                   <input
                     type="checkbox"
                     checked={selectedPosts.includes(item.id)}
@@ -292,7 +289,7 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                 </td>
-                <td className="px-4 md:px-6 py-4">
+                <td className="px-4 md:px-6 py-2">
                    <div className="flex items-start space-x-3">
                      {/* Post Type Icon or Image Thumbnail */}
                      <div className="flex-shrink-0">
@@ -337,18 +334,25 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
                        <div className="flex items-start justify-between">
                          <div className="flex-1">
                            <div className="flex items-center space-x-2 mb-1">
-                             <p className="text-sm text-gray-900 truncate max-w-xs">
-                               {item.content && item.content !== '0' ? item.content : 
+                             <p className="text-xs text-gray-900 truncate max-w-[200px]">
+                               {item.content && item.content !== '0' ? 
+                                (item.content.length > 50 ? item.content.substring(0, 50) + '...' : item.content) : 
                                 item.mediaFile ? `${item.postType.charAt(0).toUpperCase() + item.postType.slice(1)} post` : 
                                 `Post ${item.id.slice(-6)}`}
                              </p>
-                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                               {item.status}
-                             </span>
+                             {item.status === 'published' ? (
+                               <svg className="w-3 h-3 text-gray-900" fill="currentColor" viewBox="0 0 20 20">
+                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" clipRule="evenodd" />
+                               </svg>
+                             ) : (
+                               <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
+                                 {item.status}
+                               </span>
+                             )}
                            </div>
                            {item.hashtags && (
-                             <p className="text-xs text-blue-600 mt-1 truncate max-w-xs">
-                               {item.hashtags}
+                             <p className="text-xs text-blue-600 mt-0.5 truncate max-w-[180px]">
+                               {item.hashtags.length > 30 ? item.hashtags.substring(0, 30) + '...' : item.hashtags}
                              </p>
                            )}
                            <div className="flex items-center mt-1 space-x-2">
@@ -371,13 +375,8 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
                            </div>
                          </div>
                          <div className="flex items-center space-x-2">
-                           {item.status === 'published' && (
-                             <button className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700 transition-colors">
-                               Boost post
-                             </button>
-                           )}
                            {item.status === 'scheduled' && (
-                             <button className="bg-orange-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-orange-700 transition-colors">
+                             <button className="bg-orange-600 text-white px-2 py-0.5 rounded text-xs font-medium hover:bg-orange-700 transition-colors">
                                Edit
                              </button>
                            )}
@@ -386,7 +385,7 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
                      </div>
                    </div>
                  </td>
-                <td className="px-4 md:px-6 py-4 text-sm text-gray-900">
+                <td className="px-4 md:px-6 py-2 text-xs text-gray-900">
                   <div className="font-medium">
                     {item.scheduledPost?.scheduledDate ? 
                       formatDate(item.scheduledPost.scheduledDate) :
@@ -394,30 +393,18 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
                       formatDate(item.createdAt)
                     }
                   </div>
-                  {item.scheduledPost && (
-                    <div className="text-xs text-orange-600 mt-1">
-                      Scheduled
-                    </div>
-                  )}
-                </td>
-                <td className="px-4 md:px-6 py-4 text-sm text-gray-600">
-                  <div className="font-mono">
+                  <div className="font-mono text-gray-600 mt-0.5">
                     {item.scheduledPost?.scheduledTime ? 
                       formatScheduledTime(item.scheduledPost.scheduledTime) :
                       item.publishedAt ? formatTime(item.publishedAt) :
                       formatTime(item.createdAt)
                     }
                   </div>
-                  {item.scheduledPost && (
-                    <div className="text-xs text-gray-500 mt-1">
-                      Post #{item.scheduledPost.postNumber}
-                    </div>
-                  )}
                 </td>
-                <td className="px-4 md:px-6 py-4 hidden md:table-cell">
+                <td className="px-4 md:px-6 py-2 hidden md:table-cell">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-xs font-medium text-gray-900">
                         {item.metrics?.reach || 0} People reached
                       </div>
                       <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
@@ -429,10 +416,10 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
                     </div>
                   </div>
                 </td>
-                <td className="px-4 md:px-6 py-4 hidden lg:table-cell">
+                <td className="px-4 md:px-6 py-2 hidden lg:table-cell">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-xs font-medium text-gray-900">
                         {item.metrics?.engagement || 0} Post Engagements
                       </div>
                       <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
@@ -444,10 +431,10 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
                     </div>
                   </div>
                 </td>
-                <td className="px-4 md:px-6 py-4 hidden lg:table-cell">
+                <td className="px-4 md:px-6 py-2 hidden lg:table-cell">
                   <div className="flex items-center">
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-xs font-medium text-gray-900">
                         {item.metrics?.reactions || 0} Reactions
                       </div>
                       <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
