@@ -52,9 +52,9 @@ interface LoginFormData {
 const sidebarItems = [
   {
     id: 'schedule',
-    label: 'Schedule Content',
+    label: 'Content & Post',
     icon: Calendar,
-    description: 'Manage scheduled posts',
+    description: 'Manage content and posts',
     href: '/dashboard/schedule'
   },
   {

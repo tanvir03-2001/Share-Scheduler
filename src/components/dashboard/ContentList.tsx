@@ -257,17 +257,57 @@ export default function ContentList({ type, title }: ContentListProps) {
           <div key={item.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
             <div className="flex items-start space-x-4">
               {/* Image/Thumbnail */}
-              {item.mediaFile && (
-                <div className="flex-shrink-0">
-                  <div className={`${item.postType === 'reel' ? 'w-20 h-28' : 'w-20 h-20'} bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden`}>
-                    {item.postType === 'reel' ? (
-                      <Video className="w-8 h-8 text-gray-400" />
-                    ) : (
-                      <Image className="w-8 h-8 text-gray-400" />
-                    )}
+              <div className="flex-shrink-0">
+                <div className={`${item.postType === 'reel' ? 'w-20 h-28' : 'w-20 h-20'} bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden relative`}>
+                  {item.mediaFile && item.mediaFile.url ? (
+                    <img
+                      src={item.mediaFile.url}
+                      alt={item.mediaFile.originalName || 'Content thumbnail'}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to icon if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = item.postType === 'reel' 
+                            ? '<svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>'
+                            : '<svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>';
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      {item.postType === 'reel' ? (
+                        <Video className="w-8 h-8 text-gray-400" />
+                      ) : item.postType === 'image' || item.postType === 'story' ? (
+                        <Image className="w-8 h-8 text-gray-400" />
+                      ) : (
+                        <Calendar className="w-8 h-8 text-gray-400" />
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Show placeholder image for content without media */}
+                  {!item.mediaFile && (item.postType === 'image' || item.postType === 'story') && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                      <div className="text-center">
+                        <Image className="w-6 h-6 text-gray-500 mx-auto mb-1" />
+                        <div className="text-xs text-gray-500">No Image</div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Post type indicator */}
+                  <div className="absolute top-1 left-1">
+                    <div className="bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded">
+                      {item.postType === 'reel' ? 'VIDEO' : 
+                       item.postType === 'image' ? 'IMG' : 
+                       item.postType === 'story' ? 'STORY' : 'TEXT'}
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* Content Details */}
               <div className="flex-1 min-w-0">
@@ -292,11 +332,11 @@ export default function ContentList({ type, title }: ContentListProps) {
                     <div className="flex items-center space-x-4 text-xs text-gray-500">
                       <div className="flex items-center">
                         <Calendar className="w-3 h-3 mr-1" />
-                        {formatDate(item.createdAt)}
+                        {item.scheduledPost?.scheduledDate ? formatDate(item.scheduledPost.scheduledDate) : formatDate(item.createdAt)}
                       </div>
                       <div className="flex items-center">
                         <Clock className="w-3 h-3 mr-1" />
-                        {formatTime(item.createdAt)}
+                        {item.scheduledPost?.scheduledTime || formatTime(item.createdAt)}
                       </div>
                       <div className="flex items-center">
                         {getTypeIcon(item.postType)}
@@ -306,11 +346,22 @@ export default function ContentList({ type, title }: ContentListProps) {
                         <span className="text-gray-400">•</span>
                         <span className="ml-1">{item.platforms.join(', ')}</span>
                       </div>
+                      {item.scheduledPost?.facebookPostId && (
+                        <div className="flex items-center">
+                          <span className="text-gray-400">•</span>
+                          <span className="ml-1 text-green-600">Posted to Facebook</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* Actions */}
                   <div className="flex items-center space-x-2 ml-4">
+                    {item.status === 'published' && (
+                      <button className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700 transition-colors">
+                        Boost Post
+                      </button>
+                    )}
                     <button
                       onClick={() => handleEdit(item.id)}
                       className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

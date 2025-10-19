@@ -311,7 +311,7 @@ export default function FacebookPageList({ onPageSelect, selectedPageId, onPageS
       >
         <div className="space-y-3 scrollbar-thin">
           <p className="text-sm text-gray-600 mb-4">
-            Choose a Facebook page to manage and schedule content for.
+            Choose a Facebook page to manage and create content for.
           </p>
           
           {pages.map((page) => (
