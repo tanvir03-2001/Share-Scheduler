@@ -39,102 +39,6 @@ interface ContentListProps {
   title: string
 }
 
-// Sample data for different content types
-const sampleContent: Record<string, ContentItem[]> = {
-  reel: [
-    {
-      id: '1',
-      title: 'Morning Workout Routine',
-      description: 'Quick 15-minute morning workout to start your day with energy and motivation.',
-      imageUrl: '/api/placeholder/80/120',
-      postDate: '2024-12-15',
-      postTime: '08:00',
-      status: 'scheduled',
-      type: 'reel'
-    },
-    {
-      id: '2',
-      title: 'Healthy Breakfast Ideas',
-      description: '5 easy and nutritious breakfast recipes you can make in under 10 minutes.',
-      imageUrl: '/api/placeholder/80/120',
-      postDate: '2024-12-16',
-      postTime: '09:30',
-      status: 'draft',
-      type: 'reel'
-    },
-    {
-      id: '3',
-      title: 'Productivity Tips',
-      description: 'Simple productivity hacks that successful people use every day.',
-      imageUrl: '/api/placeholder/80/120',
-      postDate: '2024-12-14',
-      postTime: '14:00',
-      status: 'published',
-      type: 'reel'
-    }
-  ],
-  story: [
-    {
-      id: '4',
-      title: 'Behind the Scenes',
-      description: 'Take a look at our creative process and team collaboration.',
-      imageUrl: '/api/placeholder/80/80',
-      postDate: '2024-12-15',
-      postTime: '12:00',
-      status: 'scheduled',
-      type: 'story'
-    },
-    {
-      id: '5',
-      title: 'Daily Motivation',
-      description: 'Start your day with positive energy and motivation.',
-      imageUrl: '/api/placeholder/80/80',
-      postDate: '2024-12-16',
-      postTime: '07:00',
-      status: 'draft',
-      type: 'story'
-    },
-    {
-      id: '6',
-      title: 'Weekend Vibes',
-      description: 'Relaxing weekend activities and self-care routines.',
-      imageUrl: '/api/placeholder/80/80',
-      postDate: '2024-12-13',
-      postTime: '18:00',
-      status: 'published',
-      type: 'story'
-    }
-  ],
-  text: [
-    {
-      id: '7',
-      title: 'Industry Insights',
-      description: 'Latest trends and insights from the digital marketing industry. What you need to know to stay ahead.',
-      postDate: '2024-12-15',
-      postTime: '10:00',
-      status: 'scheduled',
-      type: 'text'
-    },
-    {
-      id: '8',
-      title: 'Customer Success Story',
-      description: 'How our client increased their engagement by 300% using our strategies. Read the full case study.',
-      postDate: '2024-12-16',
-      postTime: '15:30',
-      status: 'draft',
-      type: 'text'
-    },
-    {
-      id: '9',
-      title: 'Weekly Newsletter',
-      description: 'This week\'s highlights: New features, tips, and community updates. Don\'t miss out!',
-      postDate: '2024-12-12',
-      postTime: '09:00',
-      status: 'published',
-      type: 'text'
-    }
-  ]
-}
 
 export default function ContentList({ type, title }: ContentListProps) {
   const [showActions, setShowActions] = useState<string | null>(null)
@@ -147,16 +51,19 @@ export default function ContentList({ type, title }: ContentListProps) {
     const fetchContent = async () => {
       try {
         setLoading(true)
+        setError(null)
         const response = await apiClient.getUserContent(1, 50, undefined, type)
         
         if (response.success && response.data) {
           setContent(response.data.contents || [])
         } else {
-          setError(response.error || 'Failed to fetch content')
+          setContent([])
+          setError(response.error || 'No content found')
         }
       } catch (err) {
         console.error('Error fetching content:', err)
-        setError('Failed to fetch content')
+        setError('Failed to fetch content from server')
+        setContent([])
       } finally {
         setLoading(false)
       }
@@ -247,11 +154,16 @@ export default function ContentList({ type, title }: ContentListProps) {
         </button>
       </div>
 
-      {content.length === 0 ? (
-        <div className="flex items-center justify-center py-8">
-          <div className="text-gray-500">No {type} content found. Create your first post!</div>
+      {content.length === 0 && !loading ? (
+        <div className="text-center py-12">
+          <div className="text-gray-500 text-lg mb-2">
+            No {type} content found. Create your first {type} post!
+          </div>
+          <button className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            Create New {type.charAt(0).toUpperCase() + type.slice(1)} Post
+          </button>
         </div>
-      ) : (
+      ) : content.length > 0 ? (
         <div className="space-y-4">
           {content.map((item) => (
           <div key={item.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
@@ -390,7 +302,7 @@ export default function ContentList({ type, title }: ContentListProps) {
           </div>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   )
 }

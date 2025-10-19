@@ -59,10 +59,11 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
     const fetchContent = async () => {
       try {
         setLoading(true)
+        setError(null)
         const response = await apiClient.getUserContent(1, 50)
         
         if (response.success && response.data) {
-          // Add mock metrics for demonstration
+          // Add mock metrics for demonstration (you can remove this when real metrics are available)
           const contentWithMetrics = (response.data.contents || []).map((item: ContentItem) => ({
             ...item,
             metrics: {
@@ -73,139 +74,14 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
           }))
           setContent(contentWithMetrics)
         } else {
-          // If no content from API, show sample data for demonstration
-          const sampleData: ContentItem[] = [
-            {
-              id: '68f40e5616632cf8cd0e3bdf',
-              postType: 'text',
-              content: 'text dslfjl',
-              platforms: ['facebook'],
-              publishMode: 'now',
-              status: 'published',
-              createdAt: '2025-10-18T22:01:58.544Z',
-              updatedAt: '2025-10-18T22:01:58.544Z',
-              publishedAt: '2025-10-18T22:01:58.544Z',
-              metrics: { reach: 2, engagement: 2, reactions: 2 }
-            },
-            {
-              id: '68f40e6b16632cf8cd0e3be6',
-              postType: 'image',
-              content: 'jhjg',
-              mediaFile: {
-                filename: 'c371b660-aa50-4fc2-a622-c7e806ce4a87-1760824936166.png',
-                originalName: 'ChatGPT Image Oct 12, 2025, 02_10_19 AM.png',
-                mimetype: 'image/png',
-                size: 1290851,
-                url: 'https://res.cloudinary.com/dlb79o5oh/image/upload/v1760824936/facebook-auto-post/content/c371b660-aa50-4fc2-a622-c7e806ce4a87-1760824936166_gaqvnm.png',
-                type: 'image',
-                cloudinaryPublicId: 'facebook-auto-post/content/c371b660-aa50-4fc2-a622-c7e806ce4a87-1760824936166_gaqvnm',
-                previewUrl: 'https://res.cloudinary.com/dlb79o5oh/image/upload/c_fill,g_auto,h_300,q_auto,w_300/v1/facebook-auto-post/content/c371b660-aa50-4fc2-a622-c7e806ce4a87-1760824936166_gaqvnm?_a=BAMAK+WO0'
-              },
-              platforms: ['facebook'],
-              publishMode: 'now',
-              status: 'published',
-              createdAt: '2025-10-18T22:02:19.624Z',
-              updatedAt: '2025-10-18T22:02:19.624Z',
-              publishedAt: '2025-10-18T22:02:19.624Z',
-              metrics: { reach: 7, engagement: 1, reactions: 1 }
-            },
-            {
-              id: '68f40e7e16632cf8cd0e3bec',
-              postType: 'reel',
-              content: 'hshfg',
-              mediaFile: {
-                filename: '071ded4a-7212-4423-89f4-3dbfed412e14-1760824954625.mp4',
-                originalName: 'ssstik.io_@md...hridoy....raaz_1760733127911.mp4',
-                mimetype: 'video/mp4',
-                size: 3941955,
-                url: 'https://res.cloudinary.com/dlb79o5oh/video/upload/v1760824955/facebook-auto-post/content/071ded4a-7212-4423-89f4-3dbfed412e14-1760824954625_r8zrmf.mp4',
-                type: 'video',
-                cloudinaryPublicId: 'facebook-auto-post/content/071ded4a-7212-4423-89f4-3dbfed412e14-1760824954625_r8zrmf',
-                previewUrl: 'https://res.cloudinary.com/dlb79o5oh/video/upload/c_fill,g_auto,h_300,q_auto,so_1,w_300/v1/facebook-auto-post/content/071ded4a-7212-4423-89f4-3dbfed412e14-1760824954625_r8zrmf?_a=BAMAK+WO0'
-              },
-              platforms: ['facebook'],
-              publishMode: 'schedule',
-              scheduledPost: {
-                postNumber: 1,
-                scheduledDate: '2025-10-19T00:00:00.000Z',
-                scheduledTime: '04:42',
-                status: 'pending'
-              },
-              status: 'scheduled',
-              createdAt: '2025-10-18T22:02:38.990Z',
-              updatedAt: '2025-10-18T22:02:38.990Z',
-              metrics: { reach: 15, engagement: 8, reactions: 12 }
-            },
-            {
-              id: '68f40e9916632cf8cd0e3bf3',
-              postType: 'story',
-              content: '241213212',
-              mediaFile: {
-                filename: 'cbc13598-d63a-4562-8f28-89ed64e04dfc-1760824981195.mp4',
-                originalName: 'ssstik.io_@musfikamoni5_1760481056735.mp4',
-                mimetype: 'video/mp4',
-                size: 3685169,
-                url: 'https://res.cloudinary.com/dlb79o5oh/video/upload/v1760824981/facebook-auto-post/content/cbc13598-d63a-4562-8f28-89ed64e04dfc-1760824981195_tkvzj3.mp4',
-                type: 'video',
-                cloudinaryPublicId: 'facebook-auto-post/content/cbc13598-d63a-4562-8f28-89ed64e04dfc-1760824981195_tkvzj3',
-                previewUrl: 'https://res.cloudinary.com/dlb79o5oh/video/upload/c_fill,g_auto,h_300,q_auto,so_1,w_300/v1/facebook-auto-post/content/cbc13598-d63a-4562-8f28-89ed64e04dfc-1760824981195_tkvzj3?_a=BAMAK+WO0'
-              },
-              platforms: ['facebook'],
-              publishMode: 'schedule',
-              scheduledPost: {
-                postNumber: 1,
-                scheduledDate: '2025-10-19T00:00:00.000Z',
-                scheduledTime: '04:42',
-                status: 'pending'
-              },
-              status: 'scheduled',
-              createdAt: '2025-10-18T22:03:05.202Z',
-              updatedAt: '2025-10-18T22:03:05.202Z',
-              metrics: { reach: 10, engagement: 5, reactions: 8 }
-            }
-          ]
-          setContent(sampleData)
+          // No content available from API
+          setContent([])
+          setError(response.error || 'No content found')
         }
       } catch (err) {
         console.error('Error fetching content:', err)
-        // Show sample data on error for demonstration
-        const sampleData: ContentItem[] = [
-          {
-            id: '68f40e5616632cf8cd0e3bdf',
-            postType: 'text',
-            content: 'text dslfjl',
-            platforms: ['facebook'],
-            publishMode: 'now',
-            status: 'published',
-            createdAt: '2025-10-18T22:01:58.544Z',
-            updatedAt: '2025-10-18T22:01:58.544Z',
-            publishedAt: '2025-10-18T22:01:58.544Z',
-            metrics: { reach: 2, engagement: 2, reactions: 2 }
-          },
-          {
-            id: '68f40e6b16632cf8cd0e3be6',
-            postType: 'image',
-            content: 'jhjg',
-            mediaFile: {
-              filename: 'c371b660-aa50-4fc2-a622-c7e806ce4a87-1760824936166.png',
-              originalName: 'ChatGPT Image Oct 12, 2025, 02_10_19 AM.png',
-              mimetype: 'image/png',
-              size: 1290851,
-              url: 'https://res.cloudinary.com/dlb79o5oh/image/upload/v1760824936/facebook-auto-post/content/c371b660-aa50-4fc2-a622-c7e806ce4a87-1760824936166_gaqvnm.png',
-              type: 'image',
-              cloudinaryPublicId: 'facebook-auto-post/content/c371b660-aa50-4fc2-a622-c7e806ce4a87-1760824936166_gaqvnm',
-              previewUrl: 'https://res.cloudinary.com/dlb79o5oh/image/upload/c_fill,g_auto,h_300,q_auto,w_300/v1/facebook-auto-post/content/c371b660-aa50-4fc2-a622-c7e806ce4a87-1760824936166_gaqvnm?_a=BAMAK+WO0'
-            },
-            platforms: ['facebook'],
-            publishMode: 'now',
-            status: 'published',
-            createdAt: '2025-10-18T22:02:19.624Z',
-            updatedAt: '2025-10-18T22:02:19.624Z',
-            publishedAt: '2025-10-18T22:02:19.624Z',
-            metrics: { reach: 7, engagement: 1, reactions: 1 }
-          }
-        ]
-        setContent(sampleData)
+        setError('Failed to fetch content from server')
+        setContent([])
       } finally {
         setLoading(false)
       }
@@ -588,9 +464,18 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
         </table>
       </div>
 
-      {filteredContent.length === 0 && (
-        <div className="text-center py-8">
-          <div className="text-gray-500">No posts found matching your criteria.</div>
+      {filteredContent.length === 0 && !loading && (
+        <div className="text-center py-12">
+          <div className="text-gray-500 text-lg mb-2">
+            {content.length === 0 
+              ? 'No posts available. Create your first post to get started!' 
+              : 'No posts found matching your criteria.'}
+          </div>
+          {content.length === 0 && (
+            <button className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              Create New Post
+            </button>
+          )}
         </div>
       )}
     </div>
