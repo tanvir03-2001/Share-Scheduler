@@ -18,6 +18,7 @@ interface ContentItem {
     type: string
     cloudinaryPublicId?: string
     previewUrl?: string
+    thumbnailUrl?: string
   }
   platforms: string[]
   publishMode: string
@@ -295,10 +296,10 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
                    <div className="flex items-start space-x-3">
                      {/* Post Type Icon or Image Thumbnail */}
                      <div className="flex-shrink-0">
-                       {item.mediaFile && (item.mediaFile.previewUrl || item.mediaFile.url) ? (
+                       {item.mediaFile && (item.mediaFile.thumbnailUrl || item.mediaFile.previewUrl || item.mediaFile.url) ? (
                          <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center relative">
                            <img
-                             src={item.mediaFile.previewUrl || item.mediaFile.url}
+                             src={item.mediaFile.thumbnailUrl || item.mediaFile.previewUrl || item.mediaFile.url}
                              alt={item.mediaFile.originalName || 'Post thumbnail'}
                              className="w-full h-full object-cover"
                              onError={(e) => {

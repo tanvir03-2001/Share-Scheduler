@@ -16,6 +16,8 @@ interface ContentItem {
     size: number
     url: string
     type: string
+    cloudinaryPublicId?: string
+    thumbnailUrl?: string
   }
   platforms: string[]
   publishMode: string
@@ -171,9 +173,9 @@ export default function ContentList({ type, title }: ContentListProps) {
               {/* Image/Thumbnail */}
               <div className="flex-shrink-0">
                 <div className={`${item.postType === 'reel' ? 'w-20 h-28' : 'w-20 h-20'} bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden relative`}>
-                  {item.mediaFile && item.mediaFile.url ? (
+                  {item.mediaFile && (item.mediaFile.thumbnailUrl || item.mediaFile.url) ? (
                     <img
-                      src={item.mediaFile.url}
+                      src={item.mediaFile.thumbnailUrl || item.mediaFile.url}
                       alt={item.mediaFile.originalName || 'Content thumbnail'}
                       className="w-full h-full object-cover"
                       onError={(e) => {
