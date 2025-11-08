@@ -1,5 +1,6 @@
 'use client'
 
+import { usePage } from '@/contexts/PageContext'
 import { apiClient } from '@/lib/api'
 import { Calendar, Edit, Image, MoreVertical, Trash2, Video } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -43,18 +44,27 @@ interface ContentListProps {
 
 
 export default function ContentList({ type, title }: ContentListProps) {
+  const { selectedPage } = usePage()
   const [showActions, setShowActions] = useState<string | null>(null)
   const [content, setContent] = useState<ContentItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch content from API
+  // Fetch content from API - refresh when page changes or type changes
   useEffect(() => {
     const fetchContent = async () => {
       try {
         setLoading(true)
         setError(null)
-        const response = await apiClient.getUserContent(1, 50, undefined, type)
+        // Only fetch if a page is selected
+        if (!selectedPage) {
+          setContent([])
+          setError('Please select a Facebook page to view content')
+          setLoading(false)
+          return
+        }
+        
+        const response = await apiClient.getUserContent(1, 50, undefined, type, selectedPage.pageId)
         
         if (response.success && response.data) {
           setContent(response.data.contents || [])
@@ -72,7 +82,7 @@ export default function ContentList({ type, title }: ContentListProps) {
     }
 
     fetchContent()
-  }, [type])
+  }, [type, selectedPage?.pageId]) // Refresh when page changes
 
   const getStatusColor = (status: string) => {
     switch (status) {

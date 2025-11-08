@@ -544,7 +544,7 @@ class ApiClient {
         }));
     }
 
-    async getUserContent(page: number = 1, limit: number = 10, status?: string, postType?: string): Promise<ApiResponse<any>> {
+    async getUserContent(page: number = 1, limit: number = 10, status?: string, postType?: string, pageId?: string): Promise<ApiResponse<any>> {
         const params = new URLSearchParams({
             page: page.toString(),
             limit: limit.toString(),
@@ -552,6 +552,7 @@ class ApiClient {
 
         if (status) params.append('status', status);
         if (postType) params.append('postType', postType);
+        if (pageId) params.append('pageId', pageId);
 
         return this.request(`/content?${params.toString()}`);
     }

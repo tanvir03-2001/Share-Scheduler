@@ -1,5 +1,6 @@
 'use client'
 
+import { usePage } from '@/contexts/PageContext'
 import { apiClient } from '@/lib/api'
 import { BarChart3, Image, Search, Video } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -48,6 +49,7 @@ interface PostsTableProps {
 }
 
 export default function PostsTable({ type = 'all' }: PostsTableProps) {
+  const { selectedPage } = usePage()
   const [content, setContent] = useState<ContentItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -55,13 +57,21 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
   const [selectedPosts, setSelectedPosts] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState<'published' | 'scheduled' | 'drafts'>('published')
 
-  // Fetch content from API
+  // Fetch content from API - refresh when page changes
   useEffect(() => {
     const fetchContent = async () => {
       try {
         setLoading(true)
         setError(null)
-        const response = await apiClient.getUserContent(1, 50)
+        // Only fetch if a page is selected
+        if (!selectedPage) {
+          setContent([])
+          setError('Please select a Facebook page to view posts')
+          setLoading(false)
+          return
+        }
+        
+        const response = await apiClient.getUserContent(1, 50, undefined, undefined, selectedPage.pageId)
         
         if (response.success && response.data) {
           // Add mock metrics for demonstration (you can remove this when real metrics are available)
@@ -89,7 +99,7 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
     }
 
     fetchContent()
-  }, [])
+  }, [selectedPage?.pageId]) // Refresh when page changes
 
   const getStatusColor = (status: string) => {
     switch (status) {
