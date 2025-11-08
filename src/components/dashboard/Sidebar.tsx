@@ -2,6 +2,7 @@
 
 import Tooltip from '@/components/ui/Tooltip'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePage } from '@/contexts/PageContext'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { apiClient, FacebookConnectionStatus, FacebookPage } from '@/lib/api'
 import {
@@ -125,11 +126,11 @@ const sidebarItems = [
 export default function Sidebar({ activeTab }: SidebarProps) {
   const { user, logout, login, isLoading } = useAuth()
   const { isCollapsed, isMobile, isMobileMenuOpen, toggleSidebar, closeMobileMenu } = useSidebar()
+  const { selectedPage, setSelectedPage } = usePage()
   const pathname = usePathname()
   const router = useRouter()
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
   const [isPageDropdownOpen, setIsPageDropdownOpen] = useState(false)
-  const [selectedPage, setSelectedPage] = useState<FacebookPage | null>(null)
   const [pages, setPages] = useState<FacebookPage[]>([])
   const [showLoginForm, setShowLoginForm] = useState(false)
   const [showPassword, setShowPassword] = useState(false)

@@ -3,6 +3,8 @@
 import BeautifulAlert from '@/components/ui/BeautifulAlert'
 import UploadModal from '@/components/ui/UploadModal'
 import UploadProgress from '@/components/ui/UploadProgress'
+import { usePage } from '@/contexts/PageContext'
+import { convertLocalToUTC, formatTimeWithTimezone, getMinScheduleDate, getMinScheduleTime, getUserTimezone, isScheduledTimeInFuture } from '@/lib/timeUtils'
 import {
   ArrowLeft,
   ArrowRight,
@@ -67,25 +69,15 @@ const postTypes: PostType[] = [
 ]
 
 export default function PostContentCreator() {
+  const { selectedPage } = usePage()
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedPostType, setSelectedPostType] = useState<string>('')
   const [content, setContent] = useState('')
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isDragOver, setIsDragOver] = useState(false)
   const [publishMode, setPublishMode] = useState<'now' | 'schedule'>('now')
-  const [scheduleDate, setScheduleDate] = useState(() => {
-    const today = new Date()
-    // Format as YYYY-MM-DD using local date components
-    const year = today.getFullYear()
-    const month = (today.getMonth() + 1).toString().padStart(2, '0')
-    const day = today.getDate().toString().padStart(2, '0')
-    return `${year}-${month}-${day}`
-  })
-  const [scheduleTimes, setScheduleTimes] = useState<string[]>(() => {
-    const now = new Date()
-    now.setMinutes(now.getMinutes() + 40) // Add 40 minutes
-    return [now.toTimeString().slice(0, 5)] // Format as HH:MM
-  })
+  const [scheduleDate, setScheduleDate] = useState(() => getMinScheduleDate())
+  const [scheduleTimes, setScheduleTimes] = useState<string[]>(() => [getMinScheduleTime()])
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['facebook'])
   const [hashtags, setHashtags] = useState('')
   const [isUploading, setIsUploading] = useState(false)
@@ -179,30 +171,9 @@ export default function PostContentCreator() {
   }, [selectedPlatforms.length])
 
   // Initialize default date and time
-  const getDefaultDate = () => {
-    const today = new Date()
-    // Format as YYYY-MM-DD using local date components
-    const year = today.getFullYear()
-    const month = (today.getMonth() + 1).toString().padStart(2, '0')
-    const day = today.getDate().toString().padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
-
-  // Get minimum date (today) for schedule date picker
-  const getMinDate = () => {
-    const today = new Date()
-    // Format as YYYY-MM-DD using local date components
-    const year = today.getFullYear()
-    const month = (today.getMonth() + 1).toString().padStart(2, '0')
-    const day = today.getDate().toString().padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
-
-  const getDefaultTime = () => {
-    const now = new Date()
-    now.setMinutes(now.getMinutes() + 40) // Add 40 minutes
-    return now.toTimeString().slice(0, 5) // Format as HH:MM
-  }
+  const getDefaultDate = () => getMinScheduleDate()
+  const getMinDate = () => getMinScheduleDate()
+  const getDefaultTime = () => getMinScheduleTime()
 
   // Handle publish mode change
   const handlePublishModeChange = (mode: 'now' | 'schedule') => {
@@ -433,17 +404,34 @@ export default function PostContentCreator() {
         return;
       }
       
-      // Validate schedule date (must be today or future)
-      if (publishMode === 'schedule' && scheduleDate) {
-        const selectedDate = new Date(scheduleDate)
-        const today = new Date()
-        today.setHours(0, 0, 0, 0) // Reset time to start of day
+      // Validate schedule date and time (must be in the future) - UTC validation
+      if (publishMode === 'schedule' && scheduleDate && scheduleTimes.length > 0) {
+        const validTimes = scheduleTimes.filter(time => time.trim() !== '');
         
-        if (selectedDate < today) {
-          showAlert('error', 'Invalid Date', 'Schedule date cannot be in the past. Please select today or a future date.');
-          setIsUploading(false);
-          return;
+        console.log(`🌍 Frontend UTC Timezone Validation:`, {
+          scheduleDate,
+          validTimes,
+          userTimezone: getUserTimezone(),
+          validationMethod: 'UTC Timezone Validation',
+          timezone: 'UTC'
+        });
+        
+        for (const time of validTimes) {
+          // Convert local time to UTC and validate against UTC
+          // isScheduledTimeInFuture now converts to UTC internally and validates
+          const utcConversion = convertLocalToUTC(scheduleDate, time);
+          const isValid = isScheduledTimeInFuture(scheduleDate, time);
+          
+          console.log(`🌍 UTC validation for ${time} (local) → ${utcConversion.utcDate} ${utcConversion.utcTime} (UTC): ${isValid ? '✅ Valid' : '❌ Invalid'}`);
+          
+          if (!isValid) {
+            showAlert('error', 'Invalid Time', `The selected time ${time} on ${scheduleDate} (converts to ${utcConversion.utcTime} UTC on ${utcConversion.utcDate}) is in the past. Please select a future time.`);
+            setIsUploading(false);
+            return;
+          }
         }
+        
+        console.log(`✅ All UTC timezone validations passed - Ready for server validation!`);
       }
       
       console.log('Selected platforms:', selectedPlatforms);
@@ -505,7 +493,8 @@ export default function PostContentCreator() {
             platforms: selectedPlatforms,
             publishMode,
             scheduleDate: publishMode === 'schedule' ? videoScheduleDate : undefined,
-            scheduleTimes: publishMode === 'schedule' ? [videoScheduleTime] : undefined
+            scheduleTimes: publishMode === 'schedule' ? [videoScheduleTime] : undefined,
+            selectedPageId: selectedPage?.pageId
           }
           
           try {
@@ -535,7 +524,8 @@ export default function PostContentCreator() {
           platforms: selectedPlatforms,
           publishMode,
           scheduleDate: publishMode === 'schedule' ? scheduleDate : undefined,
-          scheduleTimes: publishMode === 'schedule' ? scheduleTimes.filter(time => time.trim() !== '') : undefined
+          scheduleTimes: publishMode === 'schedule' ? scheduleTimes.filter(time => time.trim() !== '') : undefined,
+          selectedPageId: selectedPage?.pageId
         }
         
         const response = await apiClient.createContent(contentData, [])
@@ -574,19 +564,8 @@ export default function PostContentCreator() {
       // Reset form
       setContent('')
       setUploadedFiles([])
-      setScheduleDate(() => {
-        const today = new Date()
-        // Format as YYYY-MM-DD using local date components
-        const year = today.getFullYear()
-        const month = (today.getMonth() + 1).toString().padStart(2, '0')
-        const day = today.getDate().toString().padStart(2, '0')
-        return `${year}-${month}-${day}`
-      })
-      setScheduleTimes(() => {
-        const now = new Date()
-        now.setMinutes(now.getMinutes() + 40) // Add 40 minutes
-        return [now.toTimeString().slice(0, 5)] // Format as HH:MM
-      })
+      setScheduleDate(getMinScheduleDate())
+      setScheduleTimes([getMinScheduleTime()])
       setHashtags('')
       setPublishMode('now')
       setSelectedPostType('')
@@ -908,14 +887,24 @@ export default function PostContentCreator() {
                   {generateSchedulePlan().length > 0 && (
                     <div className="mt-3 p-3 bg-white rounded-lg border border-purple-200">
                       <h4 className="font-bold text-purple-900 mb-2 text-sm">Schedule Preview</h4>
+                      <div className="mb-2 text-xs text-purple-600">
+                        🌍 Your timezone: {getUserTimezone()}
+                      </div>
                       <div className="space-y-1">
-                        {generateSchedulePlan().map((item, index) => (
-                          <div key={index} className="flex items-center justify-between text-xs p-2 bg-purple-50 rounded border border-purple-100">
-                            <span className="text-purple-800 font-medium">
-                              Post {item.postNumber}: {new Date(item.date).toLocaleDateString()} at {item.time}
-                            </span>
-                          </div>
-                        ))}
+                        {generateSchedulePlan().map((item, index) => {
+                          // Convert local time to UTC for preview
+                          const utcConversion = convertLocalToUTC(item.date, item.time);
+                          return (
+                            <div key={index} className="text-xs p-2 bg-purple-50 rounded border border-purple-100">
+                              <div className="text-purple-800 font-medium">
+                                Post {item.postNumber}: {formatTimeWithTimezone(item.date, item.time)}
+                              </div>
+                              <div className="text-purple-600 mt-1">
+                                📅 Will be stored as: {utcConversion.utcDate} at {utcConversion.utcTime} UTC
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

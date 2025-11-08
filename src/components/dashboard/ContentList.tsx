@@ -1,7 +1,7 @@
 'use client'
 
 import { apiClient } from '@/lib/api'
-import { Calendar, Clock, Edit, Image, MoreVertical, Trash2, Video } from 'lucide-react'
+import { Calendar, Edit, Image, MoreVertical, Trash2, Video } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 interface ContentItem {
@@ -108,6 +108,23 @@ export default function ContentList({ type, title }: ContentListProps) {
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+
+  const formatScheduledTime = (timeString: string) => {
+    // If it's already in HH:MM format, format it nicely
+    if (timeString.match(/^\d{1,2}:\d{2}$/)) {
+      const [hours, minutes] = timeString.split(':')
+      const hour = parseInt(hours, 10)
+      const ampm = hour >= 12 ? 'PM' : 'AM'
+      const displayHour = hour % 12 || 12
+      return `${displayHour}:${minutes} ${ampm}`
+    }
+    // Otherwise format it from a date string
+    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    })
   }
 
   const handleEdit = (id: string) => {
@@ -243,27 +260,48 @@ export default function ContentList({ type, title }: ContentListProps) {
                       )}
                     </p>
                     
-                    <div className="flex items-center space-x-4 text-xs text-gray-500">
-                      <div className="flex items-center">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {item.scheduledPost?.scheduledDate ? formatDate(item.scheduledPost.scheduledDate) : formatDate(item.createdAt)}
-                      </div>
-                      <div className="flex items-center">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {item.scheduledPost?.scheduledTime || formatTime(item.createdAt)}
-                      </div>
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                      {/* Scheduled/Published Date and Time */}
+                      {item.status === 'scheduled' && item.scheduledPost?.scheduledDate && item.scheduledPost?.scheduledTime ? (
+                        <div className="flex items-center bg-blue-50 px-2 py-1 rounded">
+                          <Calendar className="w-3 h-3 mr-1 text-blue-600" />
+                          <span className="font-medium text-blue-700">Scheduled for:</span>
+                          <span className="ml-1 text-blue-900">
+                            {formatDate(item.scheduledPost.scheduledDate)} at {formatScheduledTime(item.scheduledPost.scheduledTime)}
+                          </span>
+                        </div>
+                      ) : item.status === 'published' && item.publishedAt ? (
+                        <div className="flex items-center bg-green-50 px-2 py-1 rounded">
+                          <Calendar className="w-3 h-3 mr-1 text-green-600" />
+                          <span className="font-medium text-green-700">Posted on:</span>
+                          <span className="ml-1 text-green-900">
+                            {formatDate(item.publishedAt)} at {formatTime(item.publishedAt)}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <Calendar className="w-3 h-3 mr-1" />
+                          <span>Created: {formatDate(item.createdAt)}</span>
+                        </div>
+                      )}
+                      
+                      {/* Post Type */}
                       <div className="flex items-center">
                         {getTypeIcon(item.postType)}
                         <span className="ml-1 capitalize">{item.postType}</span>
                       </div>
+                      
+                      {/* Platforms */}
                       <div className="flex items-center">
                         <span className="text-gray-400">•</span>
-                        <span className="ml-1">{item.platforms.join(', ')}</span>
+                        <span className="ml-1 font-medium">{item.platforms.join(', ')}</span>
                       </div>
+                      
+                      {/* Facebook Post ID indicator */}
                       {item.scheduledPost?.facebookPostId && (
-                        <div className="flex items-center">
+                        <div className="flex items-center text-green-600">
                           <span className="text-gray-400">•</span>
-                          <span className="ml-1 text-green-600">Posted to Facebook</span>
+                          <span className="ml-1 font-medium">Posted to Facebook</span>
                         </div>
                       )}
                     </div>

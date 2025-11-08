@@ -2,6 +2,7 @@
 // This file contains the API integration layer for authentication
 
 import { RetryUtil } from './retry.util';
+import { convertLocalToUTC, getUserTimezone } from './timeUtils';
 
 // Configure API base URL for separate frontend/backend hosting
 const getApiBaseUrl = () => {
@@ -365,6 +366,7 @@ class ApiClient {
         publishMode: 'now' | 'schedule';
         scheduleDate?: string;
         scheduleTimes?: string[];
+        selectedPageId?: string;
     }, files?: File[]): Promise<ApiResponse<{ contentId: string; scheduledPosts?: any[] }>> {
         const formData = new FormData();
 
@@ -379,12 +381,38 @@ class ApiClient {
         }
 
         if (data.publishMode === 'schedule') {
-            if (data.scheduleDate) {
-                formData.append('scheduleDate', data.scheduleDate);
+            if (data.scheduleDate && data.scheduleTimes && data.scheduleTimes.length > 0) {
+                // Convert local time to UTC before sending to server
+                const userTimezone = getUserTimezone();
+                const utcTimes: string[] = [];
+                let utcDate = '';
+
+                console.log(`🔄 Converting local times to UTC for scheduling:`);
+                console.log(`   📍 User timezone: ${userTimezone}`);
+                console.log(`   📅 Local date: ${data.scheduleDate}`);
+                console.log(`   🕐 Local times: ${data.scheduleTimes.join(', ')}`);
+
+                for (const localTime of data.scheduleTimes) {
+                    const utcConversion = convertLocalToUTC(data.scheduleDate, localTime, userTimezone);
+                    utcTimes.push(utcConversion.utcTime);
+                    utcDate = utcConversion.utcDate; // Use the last conversion's date
+                }
+
+                console.log(`   ✅ Converted to UTC:`);
+                console.log(`   📅 UTC date: ${utcDate}`);
+                console.log(`   🕐 UTC times: ${utcTimes.join(', ')}`);
+
+                // Use UTC date and times
+                formData.append('scheduleDate', utcDate);
+                formData.append('scheduleTimes', JSON.stringify(utcTimes));
+
+                // Also send timezone info for reference
+                formData.append('userTimezone', userTimezone);
             }
-            if (data.scheduleTimes) {
-                formData.append('scheduleTimes', JSON.stringify(data.scheduleTimes));
-            }
+        }
+
+        if (data.selectedPageId) {
+            formData.append('selectedPageId', data.selectedPageId);
         }
 
         // Add files if provided
@@ -445,11 +473,33 @@ class ApiClient {
         if (data.publishMode !== undefined) formData.append('publishMode', data.publishMode);
 
         if (data.publishMode === 'schedule') {
-            if (data.scheduleDate) {
-                formData.append('scheduleDate', data.scheduleDate);
-            }
-            if (data.scheduleTimes) {
-                formData.append('scheduleTimes', JSON.stringify(data.scheduleTimes));
+            if (data.scheduleDate && data.scheduleTimes && data.scheduleTimes.length > 0) {
+                // Convert local time to UTC before sending to server
+                const userTimezone = getUserTimezone();
+                const utcTimes: string[] = [];
+                let utcDate = '';
+
+                console.log(`🔄 Converting local times to UTC for scheduling:`);
+                console.log(`   📍 User timezone: ${userTimezone}`);
+                console.log(`   📅 Local date: ${data.scheduleDate}`);
+                console.log(`   🕐 Local times: ${data.scheduleTimes.join(', ')}`);
+
+                for (const localTime of data.scheduleTimes) {
+                    const utcConversion = convertLocalToUTC(data.scheduleDate, localTime, userTimezone);
+                    utcTimes.push(utcConversion.utcTime);
+                    utcDate = utcConversion.utcDate; // Use the last conversion's date
+                }
+
+                console.log(`   ✅ Converted to UTC:`);
+                console.log(`   📅 UTC date: ${utcDate}`);
+                console.log(`   🕐 UTC times: ${utcTimes.join(', ')}`);
+
+                // Use UTC date and times
+                formData.append('scheduleDate', utcDate);
+                formData.append('scheduleTimes', JSON.stringify(utcTimes));
+
+                // Also send timezone info for reference
+                formData.append('userTimezone', userTimezone);
             }
         }
 

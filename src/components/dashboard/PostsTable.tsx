@@ -385,21 +385,43 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
                      </div>
                    </div>
                  </td>
-                <td className="px-4 md:px-6 py-2 text-xs text-gray-900">
-                  <div className="font-medium">
-                    {item.scheduledPost?.scheduledDate ? 
-                      formatDate(item.scheduledPost.scheduledDate) :
-                      item.publishedAt ? formatDate(item.publishedAt) :
-                      formatDate(item.createdAt)
-                    }
-                  </div>
-                  <div className="font-mono text-gray-600 mt-0.5">
-                    {item.scheduledPost?.scheduledTime ? 
-                      formatScheduledTime(item.scheduledPost.scheduledTime) :
-                      item.publishedAt ? formatTime(item.publishedAt) :
-                      formatTime(item.createdAt)
-                    }
-                  </div>
+                <td className="px-4 md:px-6 py-2 text-xs">
+                  {item.status === 'scheduled' && item.scheduledPost?.scheduledDate && item.scheduledPost?.scheduledTime ? (
+                    <div>
+                      <div className="text-blue-700 font-semibold mb-1">Scheduled for:</div>
+                      <div className="font-medium text-gray-900">
+                        {formatDate(item.scheduledPost.scheduledDate)}
+                      </div>
+                      <div className="font-mono text-blue-600 mt-0.5">
+                        {formatScheduledTime(item.scheduledPost.scheduledTime)}
+                      </div>
+                      <div className="text-gray-500 text-xs mt-1">
+                        {item.platforms.join(', ')}
+                      </div>
+                    </div>
+                  ) : item.status === 'published' && item.publishedAt ? (
+                    <div>
+                      <div className="text-green-700 font-semibold mb-1">Posted on:</div>
+                      <div className="font-medium text-gray-900">
+                        {formatDate(item.publishedAt)}
+                      </div>
+                      <div className="font-mono text-green-600 mt-0.5">
+                        {formatTime(item.publishedAt)}
+                      </div>
+                      <div className="text-gray-500 text-xs mt-1">
+                        {item.platforms.join(', ')}
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        {formatDate(item.createdAt)}
+                      </div>
+                      <div className="font-mono text-gray-600 mt-0.5">
+                        {formatTime(item.createdAt)}
+                      </div>
+                    </div>
+                  )}
                 </td>
                 <td className="px-4 md:px-6 py-2 hidden md:table-cell">
                   <div className="flex items-center">
