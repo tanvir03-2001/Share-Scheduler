@@ -11,7 +11,9 @@ export function getUserTimezone(): string {
 }
 
 /**
- * Convert local date and time to UTC
+ * Convert local date and time to UTC (Timezone 0)
+ * This function properly converts local time to UTC by creating a Date object
+ * that represents the local time, then extracting its UTC equivalent
  */
 export function convertLocalToUTC(localDate: string, localTime: string, timezone?: string): {
     utcDate: string;
@@ -21,22 +23,33 @@ export function convertLocalToUTC(localDate: string, localTime: string, timezone
     try {
         const userTimezone = timezone || getUserTimezone();
 
-        // Create a date object from local time string
-        // When you create Date from string without timezone, it's interpreted as local time
-        const localDateTimeString = `${localDate}T${localTime}:00`;
-        const localDateObj = new Date(localDateTimeString);
+        // Parse the local date and time components
+        const [year, month, day] = localDate.split('-').map(Number);
+        const [hours, minutes] = localTime.split(':').map(Number);
 
-        // toISOString() automatically converts local time to UTC
-        // So if user enters 22:15 in UTC+6, toISOString() will give 16:15 UTC
-        const utcDate = localDateObj.toISOString().split('T')[0];
-        const utcTime = localDateObj.toISOString().split('T')[1].slice(0, 5);
+        // Create a Date object using local time components
+        // This creates a date in the user's local timezone
+        const localDateObj = new Date(year, month - 1, day, hours, minutes, 0, 0);
 
-        console.log(`🕐 Time Conversion: ${localDate} ${localTime} (${userTimezone}) → ${utcDate} ${utcTime} UTC`);
+        // Get UTC equivalent - toISOString() converts to UTC
+        const utcISOString = localDateObj.toISOString();
+        const utcDate = utcISOString.split('T')[0];
+        const utcTime = utcISOString.split('T')[1].slice(0, 5);
+
+        // Create UTC Date object for validation
+        const utcDateTime = new Date(`${utcDate}T${utcTime}:00.000Z`);
+
+        console.log(`🕐 Time Conversion (Local → UTC):`, {
+            local: `${localDate} ${localTime}`,
+            timezone: userTimezone,
+            utc: `${utcDate} ${utcTime}`,
+            utcISO: utcISOString
+        });
 
         return {
             utcDate,
             utcTime,
-            utcDateTime: localDateObj
+            utcDateTime
         };
     } catch (error) {
         console.error('Error converting local time to UTC:', error);
