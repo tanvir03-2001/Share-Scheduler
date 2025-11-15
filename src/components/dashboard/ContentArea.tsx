@@ -1,10 +1,10 @@
 'use client'
 
-import ContentList from '@/components/dashboard/ContentList'
 import PostContentCreator from '@/components/dashboard/PostContentCreator'
 import PostsTable from '@/components/dashboard/PostsTable'
 import { useSidebar } from '@/contexts/SidebarContext'
-import { Plus } from 'lucide-react'
+import { Image, Plus, Type, Video } from 'lucide-react'
+import { useState } from 'react'
 
 interface ContentAreaProps {
   activeTab: string
@@ -19,12 +19,6 @@ export default function ContentArea({ activeTab }: ContentAreaProps) {
         return <ScheduleContent />
       case 'posts':
         return <PostsContent />
-      case 'reels':
-        return <ReelsContent />
-      case 'stories':
-        return <StoriesContent />
-      case 'text':
-        return <TextContent />
       case 'analytics':
         return <AnalyticsContent />
       case 'audience':
@@ -56,6 +50,15 @@ export default function ContentArea({ activeTab }: ContentAreaProps) {
 }
 
 function ScheduleContent() {
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'reel' | 'story' | 'text'>('all')
+
+  const filterOptions = [
+    { id: 'all', label: 'All Posts', icon: null },
+    { id: 'reel', label: 'Reels', icon: Video },
+    { id: 'story', label: 'Stories', icon: Image },
+    { id: 'text', label: 'Text Posts', icon: Type }
+  ]
+
   return (
     <div className="space-y-6">
       {/* Header with Create Button */}
@@ -69,27 +72,40 @@ function ScheduleContent() {
           Create New Post
         </button>
       </div>
+
+      {/* Filter Buttons */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-gray-500 mr-2">Filter by type:</span>
+          {filterOptions.map((filter) => {
+            const Icon = filter.icon
+            const isActive = selectedFilter === filter.id
+            return (
+              <button
+                key={filter.id}
+                onClick={() => setSelectedFilter(filter.id as any)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                  isActive
+                    ? 'bg-blue-500 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {Icon && <Icon className="w-3 h-3" />}
+                {filter.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
       
       {/* Posts Table */}
-      <PostsTable />
+      <PostsTable postTypeFilter={selectedFilter === 'all' ? undefined : selectedFilter} />
     </div>
   )
 }
 
 function PostsContent() {
   return <PostContentCreator />
-}
-
-function ReelsContent() {
-  return <ContentList type="reel" title="Reels" />
-}
-
-function StoriesContent() {
-  return <ContentList type="story" title="Stories" />
-}
-
-function TextContent() {
-  return <ContentList type="text" title="Text Posts" />
 }
 
 function AnalyticsContent() {

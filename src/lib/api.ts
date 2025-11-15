@@ -423,26 +423,94 @@ class ApiClient {
         }
 
         const url = `${this.baseURL}/content`;
+        
+        console.log('📤 Sending content creation request:', {
+            url,
+            postType: data.postType,
+            publishMode: data.publishMode,
+            hasFiles: files && files.length > 0,
+            fileCount: files?.length || 0
+        });
 
         return RetryUtil.executeWithRetry(async () => {
-            const response = await fetch(url, {
-                method: 'POST',
-                body: formData,
-                credentials: 'include',
+            let response: Response;
+            
+            try {
+                response = await fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include',
+                    // Don't set Content-Type header for FormData - browser will set it automatically with boundary
+                });
+            } catch (fetchError: any) {
+                // Network error - server unreachable
+                console.error('❌ Network error:', fetchError);
+                console.error('   URL:', url);
+                console.error('   Error details:', {
+                    name: fetchError.name,
+                    message: fetchError.message,
+                    stack: fetchError.stack
+                });
+                throw new Error(`Network error: ${fetchError.message || 'Unable to connect to server. Please check your internet connection and ensure the server is running.'}`);
+            }
+
+            // Check if response is ok before trying to parse JSON
+            let responseData: any;
+            try {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    responseData = await response.json();
+                } else {
+                    // Server returned non-JSON response (likely HTML error page)
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text.substring(0, 200));
+                    throw new Error(`Server error: Received non-JSON response. Status: ${response.status}`);
+                }
+            } catch (parseError: any) {
+                // JSON parsing error or non-JSON response
+                console.error('Response parsing error:', parseError);
+                if (!response.ok) {
+                    throw new Error(`Server error (${response.status}): ${response.statusText || 'Failed to parse server response'}`);
+                }
+                throw new Error('Failed to parse server response. Please try again.');
+            }
+
+            console.log('📥 Server response:', {
+                status: response.status,
+                statusText: response.statusText,
+                success: responseData?.success,
+                message: responseData?.message,
+                error: responseData?.error
             });
 
-            const responseData = await response.json();
-
             if (!response.ok) {
+                const errorMsg = responseData?.message || responseData?.error || `Server error (${response.status}): ${response.statusText || 'Failed to create content'}`;
+                console.error('❌ Server error response:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    error: errorMsg,
+                    responseData
+                });
                 return {
                     success: false,
-                    error: responseData.message || 'Failed to create content',
-                    message: responseData.message,
+                    error: errorMsg,
+                    message: responseData?.message,
                 };
             }
 
+            if (responseData.success === false) {
+                const errorMsg = responseData?.message || responseData?.error || 'Failed to create content';
+                console.error('❌ Content creation failed:', errorMsg);
+                return {
+                    success: false,
+                    error: errorMsg,
+                    message: responseData?.message,
+                };
+            }
+
+            console.log('✅ Content created successfully:', responseData.data);
             return {
-                success: responseData.success,
+                success: true,
                 data: responseData.data,
                 message: responseData.message,
             };
@@ -450,10 +518,13 @@ class ApiClient {
             maxRetries: 2,
             baseDelay: 1000,
             retryCondition: (error) => RetryUtil.isNetworkError(error)
-        }).catch((error) => ({
-            success: false,
-            error: RetryUtil.getUserFriendlyErrorMessage(error),
-        }));
+        }).catch((error) => {
+            console.error('Content creation error:', error);
+            return {
+                success: false,
+                error: RetryUtil.getUserFriendlyErrorMessage(error) || 'Failed to create content. Please check your connection and try again.',
+            };
+        });
     }
 
     async updateContent(contentId: string, data: {

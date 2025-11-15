@@ -46,9 +46,10 @@ interface ContentItem {
 
 interface PostsTableProps {
   type?: 'all' | 'published' | 'scheduled' | 'drafts'
+  postTypeFilter?: 'reel' | 'story' | 'text' | 'image'
 }
 
-export default function PostsTable({ type = 'all' }: PostsTableProps) {
+export default function PostsTable({ type = 'all', postTypeFilter }: PostsTableProps) {
   const { selectedPage } = usePage()
   const [content, setContent] = useState<ContentItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -167,7 +168,9 @@ export default function PostsTable({ type = 'all' }: PostsTableProps) {
                       activeTab === 'scheduled' ? item.status === 'scheduled' :
                       activeTab === 'drafts' ? item.status === 'draft' : true
     
-    return matchesSearch && matchesTab
+    const matchesPostType = postTypeFilter ? item.postType === postTypeFilter : true
+    
+    return matchesSearch && matchesTab && matchesPostType
   })
 
   const handleSelectPost = (postId: string) => {

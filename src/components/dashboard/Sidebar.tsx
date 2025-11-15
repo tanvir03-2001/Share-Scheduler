@@ -20,7 +20,6 @@ import {
     EyeOff,
     Facebook,
     FileText,
-    Image,
     Loader2,
     Lock,
     LogOut,
@@ -30,10 +29,8 @@ import {
     Plus,
     Settings,
     TrendingUp,
-    Type,
     User,
-    Users,
-    Video
+    Users
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -64,29 +61,7 @@ const sidebarItems = [
     icon: FileText,
     description: 'Create and manage posts',
     href: '/dashboard/posts'
-  },
-  {
-    id: 'reels',
-    label: 'Reels',
-    icon: Video,
-    description: 'Create and schedule reels',
-    href: '/dashboard/reels'
-  },
-  {
-    id: 'stories',
-    label: 'Stories',
-    icon: Image,
-    description: 'Manage story content',
-    href: '/dashboard/stories'
-  },
-  {
-    id: 'text',
-    label: 'Text Posts',
-    icon: Type,
-    description: 'Create text-only posts',
-    href: '/dashboard/text-posts'
-  },
-  {
+  },{
     id: 'analytics',
     label: 'Analytics',
     icon: BarChart3,
